@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>すうじタッチ - とうちゃんのゲームラボ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body {
+      background: #f4fbf7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 16px;
+      touch-action: manipulation;
+    }
+    header {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .back-btn {
+      display: inline-block;
+      text-decoration: none;
+      background: #fff;
+      color: #666;
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 1.4rem;
+      color: #333;
+    }
+    .instruction {
+      font-size: 1.1rem;
+      color: #444;
+      background: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin: 16px 0;
+    }
+    .target-num {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #2ec4b6;
+    }
+    .play-area {
+      width: 100%;
+      max-width: 360px;
+      height: 380px;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .num-ball {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff9f43, #ff6b6b);
+      color: #fff;
+      font-size: 1.8rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    .num-ball:active {
+      transform: scale(0.9);
+    }
+    .clear-message {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.95);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .replay-btn {
+      padding: 12px 28px;
+      background: #2ec4b6;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(46,196,182,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../" class="back-btn">⬅ もどる</a>
+    <h1>すうじタッチ！</h1>
+  </header>
+
+  <div class="instruction">
+    つぎは <span class="target-num" id="nextNum">1</span> をおしてね！
+  </div>
+
+  <div class="play-area" id="playArea">
+    <div class="clear-message" id="clearScreen">
+      <div style="font-size: 3rem;">🎉</div>
+      <div style="font-size: 1.4rem; font-weight: bold; color: #333;">できたー！すごい！</div>
+      <button class="replay-btn" onclick="initGame()">もういっかい！</button>
+    </div>
+  </div>
+
+  <div style="height: 20px;"></div>
+
+  <script>
+    const totalCount = 5; // 1から5まで
+    let expected = 1;
+    let audioCtx = null;
+
+    function playTone(freq) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    }
+
+    function initGame() {
+      expected = 1;
+      document.getElementById('nextNum').textContent = expected;
+      document.getElementById('clearScreen').style.display = 'none';
+
+      const area = document.getElementById('playArea');
+      // 既存のボールを削除
+      const oldBalls = area.querySelectorAll('.num-ball');
+      oldBalls.forEach(b => b.remove());
+
+      const areaW = area.clientWidth || 320;
+      const areaH = area.clientHeight || 360;
+      const ballSize = 68;
+
+      const positions = [];
+
+      for (let i = 1; i <= totalCount; i++) {
+        const ball = document.createElement('div');
+        ball.className = 'num-ball';
+        ball.textContent = i;
+
+        // 重なりにくいようにランダム配置
+        let x, y, overlap;
+        let attempts = 0;
+        do {
+          overlap = false;
+          x = Math.random() * (areaW - ballSize - 20) + 10;
+          y = Math.random() * (areaH - ballSize - 20) + 10;
+          for (let p of positions) {
+            const dist = Math.hypot(p.x - x, p.y - y);
+            if (dist < ballSize + 10) {
+              overlap = true;
+              break;
+            }
+          }
+          attempts++;
+        } while (overlap && attempts < 50);
+
+        positions.push({ x, y });
+        ball.style.left = x + 'px';
+        ball.style.top = y + 'px';
+
+        ball.addEventListener('pointerdown', () => {
+          if (i === expected) {
+            playTone(350 + i * 80);
+            ball.style.transform = 'scale(0)';
+            ball.style.opacity = '0';
+            setTimeout(() => ball.remove(), 200);
+
+            expected++;
+            if (expected > totalCount) {
+              document.getElementById('nextNum').textContent = 'クリア！';
+              setTimeout(() => {
+                document.getElementById('clearScreen').style.display = 'flex';
+              }, 300);
+            } else {
+              document.getElementById('nextNum').textContent = expected;
+            }
+          } else {
+            playTone(180);
+          }
+        });
+
+        area.appendChild(ball);
+      }
+    }
+
+    window.addEventListener('load', initGame);
+  </script>
+</body>
+</html>
