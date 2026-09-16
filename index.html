@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>とうちゃんのゲームラボ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body {
+      background: #fdfaf6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 1.6rem;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    p.sub {
+      font-size: 0.95rem;
+      color: #777;
+    }
+    .menu-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .age-card {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      padding: 18px 20px;
+      border-radius: 20px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      color: #fff;
+    }
+    .age-card:active {
+      transform: scale(0.97);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .card-age2 { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+    .card-age3 { background: linear-gradient(135deg, #a1c4fd, #c2e9fb); }
+    .card-age4 { background: linear-gradient(135deg, #84fab0, #8fd3f4); }
+    .icon {
+      font-size: 2.2rem;
+      margin-right: 16px;
+    }
+    .text-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+    .title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #333;
+    }
+    .desc {
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>とうちゃんのゲームラボ</h1>
+    <p class="sub">なんさいの ゲームであそぶ？</p>
+  </header>
+
+  <div class="menu-container">
+    <a href="age2/" class="age-card card-age2">
+      <span class="icon">🐣</span>
+      <div class="text-wrap">
+        <span class="title">2さい</span>
+        <span class="desc">さわると音がなる・動くあそび</span>
+      </div>
+    </a>
+
+    <a href="age3/" class="age-card card-age3">
+      <span class="icon">🚗</span>
+      <div class="text-wrap">
+        <span class="title">3さい</span>
+        <span class="desc">いろ・かたち・かんたんクイズ</span>
+      </div>
+    </a>
+
+    <a href="age4-5/" class="age-card card-age4">
+      <span class="icon">🧩</span>
+      <div class="text-wrap">
+        <span class="title">4〜5さい</span>
+        <span class="desc">パズル・すうじ・ひらめきあそび</span>
+      </div>
+    </a>
+  </div>
+
+</body>
+</html>
