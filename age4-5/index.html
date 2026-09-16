@@ -19,12 +19,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
+      padding: 20px 16px 30px;
     }
     header {
       width: 100%;
-      max-width: 360px;
-      margin-bottom: 24px;
+      max-width: 380px;
+      margin-bottom: 20px;
     }
     .back-btn {
       display: inline-block;
@@ -36,12 +36,13 @@
       border-radius: 20px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.06);
       margin-bottom: 12px;
+      font-weight: 500;
     }
     h1 {
       font-size: 1.5rem;
       color: #00b894;
     }
-    p {
+    p.lead {
       font-size: 0.9rem;
       color: #777;
       margin-top: 4px;
@@ -49,44 +50,70 @@
     .game-list {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
     }
     .game-card {
       display: flex;
       align-items: center;
       background: #fff;
       text-decoration: none;
-      padding: 16px;
+      padding: 14px 16px;
       border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(132,250,176,0.25);
-      border: 2px solid #c3f7d8;
-      transition: transform 0.1s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      border: 2px solid transparent;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
     .game-card:active {
       transform: scale(0.97);
     }
+    .card-maze   { border-color: #c3f7d8; box-shadow: 0 4px 12px rgba(132,250,176,0.3); }
+    .card-num    { border-color: #ffeaa7; box-shadow: 0 4px 12px rgba(253,203,110,0.3); }
+    .card-buster { border-color: #bae6fd; box-shadow: 0 4px 12px rgba(56,189,248,0.3); }
+    .card-dash   { border-color: #fed7aa; box-shadow: 0 4px 12px rgba(251,146,60,0.3); }
+
     .game-icon {
-      font-size: 2.5rem;
-      margin-right: 16px;
-      background: #e8f8f0;
-      width: 60px;
-      height: 60px;
+      font-size: 2.3rem;
+      margin-right: 14px;
+      width: 58px;
+      height: 58px;
       border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
+    }
+    .icon-maze   { background: #e8f8f0; }
+    .icon-num    { background: #fff9e6; }
+    .icon-buster { background: #e0f2fe; }
+    .icon-dash   { background: #ffedd5; }
+
+    .game-info {
+      flex: 1;
     }
     .game-info h2 {
-      font-size: 1.2rem;
-      color: #333;
+      font-size: 1.15rem;
+      color: #2d3436;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .game-info p {
-      font-size: 0.85rem;
-      color: #666;
-      margin-top: 2px;
+      font-size: 0.82rem;
+      color: #636e72;
+      margin-top: 3px;
+      line-height: 1.35;
     }
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: bold;
+      color: #fff;
+    }
+    .badge-pop { background: #ff7675; }
+    .badge-fun { background: #0984e3; }
   </style>
 </head>
 <body>
@@ -94,25 +121,47 @@
   <header>
     <a href="../" class="back-btn">⬅ トップへもどる</a>
     <h1>🧩 4〜5さいのゲーム</h1>
-    <p>すきな あそびを えらんでね！</p>
+    <p class="lead">すきな あそびを えらんでね！</p>
   </header>
 
   <main class="game-list">
-    <a href="game1.html" class="game-card">
-      <div class="game-icon">🔢</div>
+
+    <!-- 1. めいろアドベンチャー -->
+    <a href="game2.html" class="game-card card-maze">
+      <div class="game-icon icon-maze">🐱</div>
       <div class="game-info">
-        <h2>すうじタッチ！</h2>
-        <p>1から じゅんばんに タッチしてね！</p>
+        <h2>めいろアドベンチャー <span class="badge badge-fun">全10面</span></h2>
+        <p>動物たちをゴールへみちびこう！最深部をめざせ！</p>
       </div>
     </a>
 
-    <a href="game2.html" class="game-card">
-      <div class="game-icon">🐱</div>
+    <!-- 2. すうじタッチ！ -->
+    <a href="game1.html" class="game-card card-num">
+      <div class="game-icon icon-num">🔢</div>
       <div class="game-info">
-        <h2>めいろあそび</h2>
-        <p>ねこちゃんをおさかなにとどけよう！</p>
+        <h2>すうじタッチ！</h2>
+        <p>1から 5まで じゅんばんに タッチして消そう！</p>
       </div>
     </a>
+
+    <!-- 3. トイレット・バスターズ！ -->
+    <a href="game3.html" class="game-card card-buster">
+      <div class="game-icon icon-buster">🚽</div>
+      <div class="game-info">
+        <h2>トイレット・バスターズ！ <span class="badge badge-pop">人気</span></h2>
+        <p>ウォシュレット砲で落ちてくるうんこを撃ち落とせ！</p>
+      </div>
+    </a>
+
+    <!-- 4. トイレット・ダッシュ！ -->
+    <a href="game4.html" class="game-card card-dash">
+      <div class="game-icon icon-dash">💩</div>
+      <div class="game-info">
+        <h2>トイレット・ダッシュ！ <span class="badge badge-pop">人気</span></h2>
+        <p>うんこをよけてペーパーを集め、トイレへ猛ダッシュ！</p>
+      </div>
+    </a>
+
   </main>
 
 </body>
