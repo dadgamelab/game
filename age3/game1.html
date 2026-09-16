@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>いろ・かたちクイズ - とうちゃんのゲームラボ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body {
+      background: #f0f7ff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 16px;
+      touch-action: manipulation;
+    }
+    header {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .back-btn {
+      display: inline-block;
+      text-decoration: none;
+      background: #fff;
+      color: #666;
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 1.4rem;
+      color: #333;
+    }
+    .question-box {
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 24px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+      text-align: center;
+      margin: 20px 0;
+    }
+    .question-target {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #ff5e7e;
+      margin-top: 8px;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .choice-card {
+      aspect-ratio: 1;
+      background: #fff;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+      border: 4px solid transparent;
+    }
+    .choice-card:active {
+      transform: scale(0.92);
+    }
+    .correct-anim {
+      border-color: #4cd964 !important;
+      animation: bounce 0.4s ease;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../" class="back-btn">⬅ もどる</a>
+    <h1>どれかな？クイズ</h1>
+  </header>
+
+  <div class="question-box">
+    <div style="font-size: 1.1rem; color: #666;">これとおなじのを えらんでね！</div>
+    <div class="question-target" id="targetEmoji">🍎</div>
+  </div>
+
+  <div class="cards-grid" id="cardsGrid"></div>
+
+  <div style="height: 20px;"></div>
+
+  <script>
+    const items = [
+      { emoji: '🍎', name: 'りんご' },
+      { emoji: '🍌', name: 'ばなな' },
+      { emoji: '🚗', name: 'くるま' },
+      { emoji: '🐶', name: 'いぬ' },
+      { emoji: '⭐', name: 'ほし' },
+      { emoji: '⚽', name: 'ぼーる' },
+      { emoji: '🍓', name: 'いちご' },
+      { emoji: '🐱', name: 'ねこ' }
+    ];
+
+    let currentTarget = null;
+    let audioCtx = null;
+
+    function playSound(isCorrect) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      if (isCorrect) {
+        // ピロリン♪（正解音）
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // ド
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // ミ
+        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // ソ
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      } else {
+        // ポフッ（不正解音）
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      }
+    }
+
+    function newQuestion() {
+      const shuffled = [...items].sort(() => 0.5 - Math.random());
+      const choices = shuffled.slice(0, 4);
+      currentTarget = choices[Math.floor(Math.random() * choices.length)];
+
+      document.getElementById('targetEmoji').textContent = currentTarget.emoji;
+
+      const grid = document.getElementById('cardsGrid');
+      grid.innerHTML = '';
+
+      choices.forEach(item => {
+        const btn = document.createElement('div');
+        btn.className = 'choice-card';
+        btn.textContent = item.emoji;
+
+        btn.addEventListener('pointerdown', () => {
+          if (item.emoji === currentTarget.emoji) {
+            playSound(true);
+            btn.classList.add('correct-anim');
+            setTimeout(newQuestion, 600);
+          } else {
+            playSound(false);
+            btn.style.transform = 'translateX(-8px)';
+            setTimeout(() => btn.style.transform = 'translateX(8px)', 80);
+            setTimeout(() => btn.style.transform = 'none', 160);
+          }
+        });
+
+        grid.appendChild(btn);
+      });
+    }
+
+    newQuestion();
+  </script>
+</body>
+</html>
