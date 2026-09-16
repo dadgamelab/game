@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>めいろアドベンチャー - とうちゃんのゲームラボ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body {
+      background: #f1f8f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 8px 14px;
+      touch-action: none;
+    }
+    header {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      color: #636e72;
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      font-weight: 500;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stage-badge {
+      background: linear-gradient(135deg, #00b894, #00cec9);
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(0,184,148,0.25);
+    }
+    .reset-btn {
+      background: #fff;
+      border: 1px solid #dfe6e9;
+      color: #636e72;
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .msg {
+      font-size: 0.95rem;
+      color: #2d3436;
+      margin: 2px 0;
+      font-weight: bold;
+      text-align: center;
+    }
+    .maze-wrapper {
+      background: #ffffff;
+      padding: 6px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #mazeCanvas {
+      display: block;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 64px);
+      grid-template-rows: repeat(2, 48px);
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .ctrl-btn {
+      background: #ffffff;
+      border: 2px solid #b2bec3;
+      border-radius: 14px;
+      font-size: 1.4rem;
+      color: #2d3436;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .ctrl-btn:active {
+      background: #dfe6e9;
+      transform: scale(0.92);
+    }
+    .btn-up { grid-column: 2; grid-row: 1; }
+    .btn-left { grid-column: 1; grid-row: 2; }
+    .btn-down { grid-column: 2; grid-row: 2; }
+    .btn-right { grid-column: 3; grid-row: 2; }
+    .clear-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .clear-box {
+      background: #ffffff;
+      padding: 24px 20px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      max-width: 300px;
+      width: 86%;
+    }
+    .clear-emoji {
+      font-size: 3.8rem;
+      margin-bottom: 6px;
+    }
+    .clear-title {
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: #2d3436;
+      margin-bottom: 6px;
+    }
+    .clear-desc {
+      color: #636e72;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    .next-btn {
+      margin-top: 16px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #00b894, #55efc4);
+      border: none;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,184,148,0.3);
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="back-btn">⬅ メニュー</a>
+    <div class="header-right">
+      <button class="reset-btn" onclick="retryStage()">やりなおす</button>
+      <div class="stage-badge" id="stageBadge">ステージ 1 / 10</div>
+    </div>
+  </header>
+
+  <div class="msg" id="stageMsg">🐱 ねこちゃんを 🐟 おさかなへ！</div>
+
+  <div class="maze-wrapper">
+    <canvas id="mazeCanvas" width="330" height="330"></canvas>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn btn-up" ontouchstart="" onclick="move(0, -1)">▲</button>
+    <button class="ctrl-btn btn-left" ontouchstart="" onclick="move(-1, 0)">◀</button>
+    <button class="ctrl-btn btn-down" ontouchstart="" onclick="move(0, 1)">▼</button>
+    <button class="ctrl-btn btn-right" ontouchstart="" onclick="move(1, 0)">▶</button>
+  </div>
+
+  <!-- ステージクリアモーダル -->
+  <div class="clear-modal" id="clearModal">
+    <div class="clear-box">
+      <div class="clear-emoji" id="clearEmoji">🎉</div>
+      <div class="clear-title" id="clearTitle">クリア！すごい！</div>
+      <p class="clear-desc" id="clearSub">つぎの迷路へすすもう！</p>
+      <button class="next-btn" id="modalBtn" onclick="nextStage()">つぎの ステージへ</button>
+    </div>
+  </div>
+
+  <script>
+    // 全10ステージのテーマ・サイズ・シード定義
+    // 各ステージごとにキャラクターとゴール、サイズ(9x9〜19x19)がステップアップ
+    const stageDefs = [
+      { level: 1, size: 9,  player: '🐱', goal: '🐟', name: 'ねこちゃん & おさかな', seed: 101 },
+      { level: 2, size: 9,  player: '🐶', goal: '🦴', name: 'わんちゃん & ほね', seed: 202 },
+      { level: 3, size: 11, player: '🐰', goal: '🥕', name: 'うさぎさん & にんじん', seed: 303 },
+      { level: 4, size: 11, player: '🐵', goal: '🍌', name: 'おさるさん & バナナ', seed: 404 },
+      { level: 5, size: 13, player: '🐼', goal: '🎋', name: 'パンダさん & ささのは', seed: 505 },
+      { level: 6, size: 13, player: '🐭', goal: '🧀', name: 'ねずみさん & チーズ', seed: 606 },
+      { level: 7, size: 15, player: '🐻', goal: '🍯', name: 'くまさん & ハチミツ', seed: 707 },
+      { level: 8, size: 15, player: '🚀', goal: '🪐', name: 'ロケット & わくせい', seed: 808 },
+      { level: 9, size: 17, player: '🚗', goal: '🏁', name: 'レーシングカー & チェッカー', seed: 909 },
+      { level: 10, size: 19, player: '👑', goal: '🏆', name: 'さいごのゆうしゃ & トロフィー', seed: 1010 }
+    ];
+
+    let currentStageIndex = 0;
+    let grid = [];
+    let currentSize = 9;
+    let player = { x: 1, y: 1 };
+    let goalPos = { x: 7, y: 7 };
+    let visited = [];
+
+    const canvas = document.getElementById('mazeCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 再現性のある乱数生成（LCG方式）
+    function pseudoRandom(seed) {
+      let s = seed;
+      return function() {
+        s = (s * 9301 + 49297) % 233280;
+        return s / 233280;
+      };
+    }
+
+    // 確実に解路（スタートからゴール）が存在する迷路生成（穴掘り深さ優先探索）
+    function generateMaze(size, seed) {
+      const rand = pseudoRandom(seed);
+      // 1: 壁, 0: 通路
+      const maze = Array.from({ length: size }, () => Array(size).fill(1));
+
+      // 奇数セルを掘り進める
+      function carve(cx, cy) {
+        maze[cy][cx] = 0;
+
+        const dirs = [
+          { dx: 0, dy: -2 }, // 上
+          { dx: 2, dy: 0 },  // 右
+          { dx: 0, dy: 2 },  // 下
+          { dx: -2, dy: 0 }  // 左
+        ];
+
+        // Fisher-Yates シャッフル
+        for (let i = dirs.length - 1; i > 0; i--) {
+          const j = Math.floor(rand() * (i + 1));
+          [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
+        }
+
+        for (const dir of dirs) {
+          const nx = cx + dir.dx;
+          const ny = cy + dir.dy;
+
+          if (nx > 0 && nx < size - 1 && ny > 0 && ny < size - 1 && maze[ny][nx] === 1) {
+            maze[cy + dir.dy / 2][cx + dir.dx / 2] = 0; // 間の壁を壊す
+            carve(nx, ny);
+          }
+        }
+      }
+
+      carve(1, 1);
+      return maze;
+    }
+
+    // スタート地点から最も多くの歩数（遷移数）を要する最深部のセルを計算
+    function findFarthestGoal(maze, size, startX, startY) {
+      const dist = Array.from({ length: size }, () => Array(size).fill(-1));
+      const queue = [{ x: startX, y: startY }];
+      dist[startY][startX] = 0;
+
+      let maxDist = 0;
+      let farthestPos = { x: startX, y: startY };
+
+      const dirs = [
+        { dx: 0, dy: -1 },
+        { dx: 1, dy: 0 },
+        { dx: 0, dy: 1 },
+        { dx: -1, dy: 0 }
+      ];
+
+      let head = 0;
+      while (head < queue.length) {
+        const cur = queue[head++];
+        const d = dist[cur.y][cur.x];
+
+        if (d > maxDist) {
+          maxDist = d;
+          farthestPos = { x: cur.x, y: cur.y };
+        }
+
+        for (const dir of dirs) {
+          const nx = cur.x + dir.dx;
+          const ny = cur.y + dir.dy;
+          if (nx > 0 && nx < size - 1 && ny > 0 && ny < size - 1) {
+            if (maze[ny][nx] === 0 && dist[ny][nx] === -1) {
+              dist[ny][nx] = d + 1;
+              queue.push({ x: nx, y: ny });
+            }
+          }
+        }
+      }
+
+      return { pos: farthestPos, distance: maxDist };
+    }
+
+    let audioCtx = null;
+    function playSound(type) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const now = audioCtx.currentTime;
+
+        if (type === 'step') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(460, now);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + 0.05);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(now + 0.05);
+        } else if (type === 'hit') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(130, now);
+          gain.gain.setValueAtTime(0.06, now);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + 0.07);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(now + 0.07);
+        } else if (type === 'clear') {
+          const notes = [523.25, 659.25, 783.99, 1046.5]; // ド・ミ・ソ・高ド
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.2);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.2);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function initStage(index) {
+      currentStageIndex = index;
+      const def = stageDefs[index];
+      currentSize = def.size;
+
+      // 迷路生成（スタート: (1,1)）
+      grid = generateMaze(currentSize, def.seed);
+      player = { x: 1, y: 1 };
+
+      // スタートから最も歩数（遷移数）のかかる最深部をゴールに指定
+      const farthest = findFarthestGoal(grid, currentSize, 1, 1);
+      goalPos = farthest.pos;
+      visited = [{ x: 1, y: 1 }];
+
+      document.getElementById('stageBadge').textContent = `ステージ ${index + 1} / 10`;
+      document.getElementById('stageMsg').textContent = `${def.player} を ${def.goal} へ！ (さい短 ${farthest.distance}ぽ)`;
+      document.getElementById('clearModal').style.display = 'none';
+
+      draw();
+    }
+
+    function retryStage() {
+      player = { x: 1, y: 1 };
+      visited = [{ x: 1, y: 1 }];
+      draw();
+    }
+
+    function draw() {
+      const def = stageDefs[currentStageIndex];
+      const cellSize = canvas.width / currentSize;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // マップ描画
+      for (let r = 0; r < currentSize; r++) {
+        for (let c = 0; c < currentSize; c++) {
+          if (grid[r][c] === 1) {
+            // 壁（角丸ブロック風）
+            ctx.fillStyle = '#4a5568';
+            ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+            ctx.fillStyle = '#2d3748';
+            ctx.fillRect(c * cellSize + 1, r * cellSize + cellSize - 2, cellSize - 1, 2);
+            ctx.fillRect(c * cellSize + cellSize - 2, r * cellSize + 1, 2, cellSize - 1);
+          } else {
+            // 通路
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+
+      // 通った足跡のハイライト
+      visited.forEach(pos => {
+        ctx.fillStyle = '#bbf7d0';
+        ctx.beginPath();
+        ctx.arc(
+          (pos.x + 0.5) * cellSize,
+          (pos.y + 0.5) * cellSize,
+          cellSize * 0.22,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+      });
+
+      // ゴール絵文字
+      const fontSize = Math.max(13, cellSize * 0.72);
+      ctx.font = `${fontSize}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(def.goal, (goalPos.x + 0.5) * cellSize, (goalPos.y + 0.5) * cellSize);
+
+      // プレイヤー絵文字
+      ctx.fillText(def.player, (player.x + 0.5) * cellSize, (player.y + 0.5) * cellSize);
+    }
+
+    function move(dx, dy) {
+      const nextX = player.x + dx;
+      const nextY = player.y + dy;
+
+      // 範囲外・壁判定
+      if (
+        nextX < 0 || nextX >= currentSize ||
+        nextY < 0 || nextY >= currentSize ||
+        grid[nextY][nextX] === 1
+      ) {
+        playSound('hit');
+        return;
+      }
+
+      player.x = nextX;
+      player.y = nextY;
+      visited.push({ x: nextX, y: nextY });
+      playSound('step');
+      draw();
+
+      // ゴール判定
+      if (player.x === goalPos.x && player.y === goalPos.y) {
+        playSound('clear');
+        setTimeout(showClearModal, 220);
+      }
+    }
+
+    function showClearModal() {
+      const isFinal = currentStageIndex === stageDefs.length - 1;
+      const def = stageDefs[currentStageIndex];
+      const modal = document.getElementById('clearModal');
+      const title = document.getElementById('clearTitle');
+      const sub = document.getElementById('clearSub');
+      const emoji = document.getElementById('clearEmoji');
+      const btn = document.getElementById('modalBtn');
+
+      if (isFinal) {
+        emoji.textContent = '👑';
+        title.textContent = '全10ステージ 完全クリア！';
+        sub.textContent = 'すべての迷路をといたね！\nめいろマスターの大天才！';
+        btn.textContent = '最初からあそぶ';
+      } else {
+        emoji.textContent = '🎉';
+        title.textContent = `ステージ ${currentStageIndex + 1} クリア！`;
+        sub.textContent = `${def.name} のゴールにとどいたよ！`;
+        btn.textContent = `ステージ ${currentStageIndex + 2} へ`;
+      }
+      modal.style.display = 'flex';
+    }
+
+    function nextStage() {
+      if (currentStageIndex === stageDefs.length - 1) {
+        initStage(0);
+      } else {
+        initStage(currentStageIndex + 1);
+      }
+    }
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    canvas.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', (e) => {
+      const diffX = e.changedTouches[0].clientX - touchStartX;
+      const diffY = e.changedTouches[0].clientY - touchStartY;
+
+      if (Math.hypot(diffX, diffY) > 16) {
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+          move(diffX > 0 ? 1 : -1, 0);
+        } else {
+          move(0, diffY > 0 ? 1 : -1);
+        }
+      }
+    }, { passive: true });
+
+    // PCキーボード（矢印キー）対応
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') move(0, -1);
+      if (e.key === 'ArrowDown') move(0, 1);
+      if (e.key === 'ArrowLeft') move(-1, 0);
+      if (e.key === 'ArrowRight') move(1, 0);
+    });
+
+    window.addEventListener('load', () => initStage(0));
+  </script>
+</body>
+</html>
