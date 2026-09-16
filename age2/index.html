@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>とうちゃんのゲームラボ</title>
+  <title>2さいのゲーム - とうちゃんのゲームラボ</title>
   <style>
     * {
       margin: 0;
@@ -11,89 +11,101 @@
       box-sizing: border-box;
       user-select: none;
       -webkit-user-select: none;
-      -webkit-touch-callout: none;
     }
     body {
-      background: #fdfaf6;
+      background: #fff8f8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      font-family: sans-serif;
-      overflow: hidden;
-      touch-action: manipulation;
+      padding: 24px 16px;
+    }
+    header {
+      width: 100%;
+      max-width: 360px;
+      margin-bottom: 24px;
+    }
+    .back-btn {
+      display: inline-block;
+      text-decoration: none;
+      background: #fff;
+      color: #666;
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      margin-bottom: 12px;
     }
     h1 {
-      color: #333;
-      font-size: 1.3rem;
-      margin-bottom: 16px;
+      font-size: 1.5rem;
+      color: #d63031;
     }
-    .touch-area {
-      width: 85vw;
-      height: 65vh;
-      max-width: 450px;
-      background: #ffffff;
-      border: 4px dashed #ddd;
-      border-radius: 24px;
+    p {
+      font-size: 0.9rem;
+      color: #777;
+      margin-top: 4px;
+    }
+    .game-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .game-card {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      text-decoration: none;
+      padding: 16px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(255,154,158,0.25);
+      border: 2px solid #ffd1d7;
+      transition: transform 0.1s ease;
+    }
+    .game-card:active {
+      transform: scale(0.97);
+    }
+    .game-icon {
+      font-size: 2.5rem;
+      margin-right: 16px;
+      background: #ffebee;
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    .game-info h2 {
       font-size: 1.2rem;
-      color: #aaa;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      color: #333;
     }
-    .star {
-      position: absolute;
-      font-size: 3.5rem;
-      pointer-events: none;
-      animation: pop 0.6s ease-out forwards;
-    }
-    @keyframes pop {
-      0% { transform: scale(0.2) translateY(0); opacity: 1; }
-      100% { transform: scale(1.4) translateY(-40px); opacity: 0; }
+    .game-info p {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 2px;
     }
   </style>
 </head>
 <body>
 
-  <h1>🌟 がめんを ぽん！ してみてね 🌟</h1>
-  <div class="touch-area" id="stage">ここを タップ！</div>
+  <header>
+    <a href="../" class="back-btn">⬅ トップへもどる</a>
+    <h1>🐣 2さいのゲーム</h1>
+    <p>すきな あそびを えらんでね！</p>
+  </header>
 
-  <script>
-    const stage = document.getElementById('stage');
-    const items = ['⭐', '🎈', '🚗', '🐱', '🍎', '🌈', '🍓', '🚀'];
+  <main class="game-list">
+    <a href="game1.html" class="game-card">
+      <div class="game-icon">⭐</div>
+      <div class="game-info">
+        <h2>ぽんぽんタッチ</h2>
+        <p>がめんを タップして おとをならそう！</p>
+      </div>
+    </a>
+  </main>
 
-    let audioCtx = null;
-    function playPop() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(500 + Math.random() * 250, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.12);
-    }
-
-    stage.addEventListener('pointerdown', (e) => {
-      playPop();
-      const mark = document.createElement('div');
-      mark.className = 'star';
-      mark.textContent = items[Math.floor(Math.random() * items.length)];
-      
-      const rect = stage.getBoundingClientRect();
-      mark.style.left = (e.clientX - rect.left - 28) + 'px';
-      mark.style.top = (e.clientY - rect.top - 28) + 'px';
-      
-      stage.appendChild(mark);
-      setTimeout(() => mark.remove(), 600);
-    });
-  </script>
 </body>
 </html>
