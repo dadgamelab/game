@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>とうちゃんのゲームラボ</title>
+  <title>とうちゃんのゲームラボ - がめんを ぽん！</title>
   <style>
     * {
       margin: 0;
@@ -49,11 +49,24 @@
       position: absolute;
       font-size: 3.5rem;
       pointer-events: none;
-      animation: pop 0.6s ease-out forwards;
+      transform-origin: center center;
+      --target-scale: 1.5;
+      animation: pop 0.65s ease-out forwards;
+      line-height: 1;
     }
+    /* タップ中心からCSS変数で指定したサイズ(--target-scale)まで拡大 */
     @keyframes pop {
-      0% { transform: scale(0.2) translateY(0); opacity: 1; }
-      100% { transform: scale(1.4) translateY(-40px); opacity: 0; }
+      0% {
+        transform: translate(-50%, -50%) scale(0.2);
+        opacity: 1;
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(var(--target-scale, 1.5)) translateY(-40px);
+        opacity: 0;
+      }
     }
   </style>
 </head>
@@ -64,35 +77,52 @@
 
   <script>
     const stage = document.getElementById('stage');
-    const items = ['⭐', '🎈', '🚗', '🐱', '🍎', '🌈', '🍓', '🚀'];
+    const items = ['⭐', '🎈', '🚗', '🐱', '🍎', '🌈', '🍓', '🚀', '🐥', '👑'];
 
     let audioCtx = null;
-    function playPop() {
+    function playPop(isBig = false) {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(500 + Math.random() * 250, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+
+      // 特大サイズのときは少し低めのポンッ！という太い音、通常はかわいい高音
+      const baseFreq = isBig ? (340 + Math.random() * 100) : (520 + Math.random() * 250);
+      osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(isBig ? 0.35 : 0.25, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (isBig ? 0.16 : 0.12));
+
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.12);
+      osc.stop(audioCtx.currentTime + (isBig ? 0.16 : 0.12));
     }
 
     stage.addEventListener('pointerdown', (e) => {
-      playPop();
+      // 1.2倍 〜 3.0倍の間でランダムな拡大率を決定
+      // （約20%の確率で2.4倍以上の「ビッグアイコン」が出現！）
+      const randomScale = (Math.random() * 1.8 + 1.2).toFixed(2);
+      const isBig = randomScale >= 2.4;
+
+      playPop(isBig);
+
       const mark = document.createElement('div');
       mark.className = 'star';
       mark.textContent = items[Math.floor(Math.random() * items.length)];
-      
+
+      // CSS変数としてランダムな拡大率を設定
+      mark.style.setProperty('--target-scale', randomScale);
+
       const rect = stage.getBoundingClientRect();
-      mark.style.left = (e.clientX - rect.left - 28) + 'px';
-      mark.style.top = (e.clientY - rect.top - 28) + 'px';
-      
+      // 指の触れた真ん中（中心）に配置
+      mark.style.left = (e.clientX - rect.left) + 'px';
+      mark.style.top = (e.clientY - rect.top) + 'px';
+
       stage.appendChild(mark);
-      setTimeout(() => mark.remove(), 600);
+      setTimeout(() => mark.remove(), 650);
     });
   </script>
 </body>
