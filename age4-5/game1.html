@@ -21,36 +21,53 @@
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 24px 16px;
+      padding: 16px 16px 20px;
       touch-action: manipulation;
     }
     header {
-      text-align: center;
-      margin-top: 10px;
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
     }
     .back-btn {
-      display: inline-block;
       text-decoration: none;
       background: #fff;
       color: #666;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       padding: 6px 14px;
       border-radius: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      font-weight: 500;
+    }
+    .stage-badge {
+      background: linear-gradient(135deg, #2ec4b6, #20a39e);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: bold;
+      padding: 6px 14px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(46,196,182,0.3);
+    }
+    .title-area {
+      text-align: center;
+      margin-top: 6px;
     }
     h1 {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: #333;
     }
     .instruction {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: #444;
       background: #fff;
-      padding: 10px 20px;
+      padding: 9px 20px;
       border-radius: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      margin: 16px 0;
+      margin: 10px 0;
+      text-align: center;
     }
     .target-num {
       font-size: 1.5rem;
@@ -60,28 +77,27 @@
     .play-area {
       width: 100%;
       max-width: 360px;
-      height: 380px;
+      height: 390px;
       background: #ffffff;
       border-radius: 24px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.06);
       position: relative;
       overflow: hidden;
+      border: 3px solid #eef7f2;
     }
     .num-ball {
       position: absolute;
-      width: 68px;
-      height: 68px;
       border-radius: 50%;
       background: linear-gradient(135deg, #ff9f43, #ff6b6b);
       color: #fff;
-      font-size: 1.8rem;
-      font-weight: bold;
+      font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(255,107,107,0.35);
       cursor: pointer;
-      transition: transform 0.1s ease;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      touch-action: manipulation;
     }
     .num-ball:active {
       transform: scale(0.9);
@@ -90,78 +106,182 @@
       display: none;
       position: absolute;
       inset: 0;
-      background: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(4px);
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 16px;
+      gap: 12px;
+      padding: 20px;
+      text-align: center;
+      z-index: 10;
     }
-    .replay-btn {
-      padding: 12px 28px;
-      background: #2ec4b6;
+    .clear-icon {
+      font-size: 3.4rem;
+      animation: pop 0.4s ease-out;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      80% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    .clear-title {
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: #2d3436;
+    }
+    .clear-desc {
+      font-size: 0.95rem;
+      color: #636e72;
+      line-height: 1.4;
+    }
+    .next-btn {
+      margin-top: 6px;
+      padding: 13px 32px;
+      background: linear-gradient(135deg, #2ec4b6, #00b894);
       color: #fff;
       border: none;
       border-radius: 24px;
       font-size: 1.1rem;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(46,196,182,0.3);
+      box-shadow: 0 4px 14px rgba(46,196,182,0.35);
+      transition: transform 0.1s ease;
+    }
+    .next-btn:active {
+      transform: scale(0.95);
+    }
+    .restart-link {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 4px;
     }
   </style>
 </head>
 <body>
 
+  <!-- ヘッダー（戻るボタン ＆ 現在ステージ表示） -->
   <header>
-    <a href="../" class="back-btn">⬅ もどる</a>
-    <h1>すうじタッチ！</h1>
+    <a href="index.html" class="back-btn">⬅ もどる</a>
+    <div class="stage-badge" id="stageBadge">ステージ 1</div>
   </header>
+
+  <div class="title-area">
+    <h1>すうじタッチ！</h1>
+  </div>
 
   <div class="instruction">
     つぎは <span class="target-num" id="nextNum">1</span> をおしてね！
   </div>
 
+  <!-- プレイエリア -->
   <div class="play-area" id="playArea">
+    <!-- クリア画面 -->
     <div class="clear-message" id="clearScreen">
-      <div style="font-size: 3rem;">🎉</div>
-      <div style="font-size: 1.4rem; font-weight: bold; color: #333;">できたー！すごい！</div>
-      <button class="replay-btn" onclick="initGame()">もういっかい！</button>
+      <div class="clear-icon">🎉</div>
+      <div class="clear-title" id="clearTitle">できたー！すごい！</div>
+      <div class="clear-desc" id="clearDesc">つぎのステージへ すすもう！</div>
+      <button class="next-btn" id="btnNext" onclick="nextStage()">つぎの ステージへ！</button>
+      <span class="restart-link" onclick="restartFromFirst()">ステージ1からやりなおす</span>
     </div>
   </div>
 
-  <div style="height: 20px;"></div>
+  <div style="height: 10px;"></div>
 
   <script>
-    const totalCount = 5; // 1から5まで
+    let currentStage = 1;
     let expected = 1;
+    let totalCount = 5;
+    const MAX_COUNT = 20;
     let audioCtx = null;
 
+    // 2面クリアごとにゴールが1つ増える計算（最大20まで）
+    // 1, 2面 ➔ 5
+    // 3, 4面 ➔ 6
+    // ...
+    // 31面以降 ➔ 20（MAX）
+    function calcTotalCount(stage) {
+      return Math.min(MAX_COUNT, 5 + Math.floor((stage - 1) / 2));
+    }
+
+    // 効果音生成（Web Audio API）
     function playTone(freq) {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.2);
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function playClearSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const notes = [523.25, 659.25, 783.99, 1046.5]; // ド・ミ・ソ・高ド
+        const now = audioCtx.currentTime;
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+          gain.gain.setValueAtTime(0.22, now + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.09 + 0.2);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.09);
+          osc.stop(now + idx * 0.09 + 0.2);
+        });
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     function initGame() {
       expected = 1;
+      totalCount = calcTotalCount(currentStage);
+
+      // HUD表示の更新
+      document.getElementById('stageBadge').textContent = `ステージ ${currentStage}`;
       document.getElementById('nextNum').textContent = expected;
       document.getElementById('clearScreen').style.display = 'none';
 
       const area = document.getElementById('playArea');
-      // 既存のボールを削除
+      // 既存のボールを全削除
       const oldBalls = area.querySelectorAll('.num-ball');
       oldBalls.forEach(b => b.remove());
 
-      const areaW = area.clientWidth || 320;
-      const areaH = area.clientHeight || 360;
-      const ballSize = 68;
+      const areaW = area.clientWidth || 330;
+      const areaH = area.clientHeight || 390;
+
+      // ボールの個数に応じてサイズを自動調整（最大20個でも重ならず快適にタップ可能）
+      let ballSize = 68;
+      if (totalCount >= 17) {
+        ballSize = 42;
+      } else if (totalCount >= 13) {
+        ballSize = 46;
+      } else if (totalCount >= 10) {
+        ballSize = 50;
+      } else if (totalCount >= 7) {
+        ballSize = 58;
+      } else if (totalCount >= 6) {
+        ballSize = 64;
+      }
+      const fontSize = Math.round(ballSize * 0.44);
 
       const positions = [];
 
@@ -169,51 +289,86 @@
         const ball = document.createElement('div');
         ball.className = 'num-ball';
         ball.textContent = i;
+        ball.style.width = ballSize + 'px';
+        ball.style.height = ballSize + 'px';
+        ball.style.fontSize = fontSize + 'px';
 
-        // 重なりにくいようにランダム配置
+        // 重なりを避けるランダム座標計算
         let x, y, overlap;
         let attempts = 0;
+        const padding = 10;
+        const minGap = totalCount >= 15 ? 4 : 8;
         do {
           overlap = false;
-          x = Math.random() * (areaW - ballSize - 20) + 10;
-          y = Math.random() * (areaH - ballSize - 20) + 10;
+          x = Math.random() * (areaW - ballSize - padding * 2) + padding;
+          y = Math.random() * (areaH - ballSize - padding * 2) + padding;
           for (let p of positions) {
             const dist = Math.hypot(p.x - x, p.y - y);
-            if (dist < ballSize + 10) {
+            if (dist < ballSize + minGap) {
               overlap = true;
               break;
             }
           }
           attempts++;
-        } while (overlap && attempts < 50);
+        } while (overlap && attempts < 120);
 
         positions.push({ x, y });
         ball.style.left = x + 'px';
         ball.style.top = y + 'px';
 
-        ball.addEventListener('pointerdown', () => {
+        // タップイベント処理
+        ball.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
           if (i === expected) {
-            playTone(350 + i * 80);
+            // 正解音（音階が少しずつ上がる）
+            playTone(320 + i * 55);
             ball.style.transform = 'scale(0)';
             ball.style.opacity = '0';
-            setTimeout(() => ball.remove(), 200);
+            setTimeout(() => ball.remove(), 160);
 
             expected++;
             if (expected > totalCount) {
               document.getElementById('nextNum').textContent = 'クリア！';
-              setTimeout(() => {
-                document.getElementById('clearScreen').style.display = 'flex';
-              }, 300);
+              playClearSound();
+              setTimeout(showClearScreen, 260);
             } else {
               document.getElementById('nextNum').textContent = expected;
             }
           } else {
-            playTone(180);
+            // お手つき音（低いブブー音）
+            playTone(170);
           }
         });
 
         area.appendChild(ball);
       }
+    }
+
+    function showClearScreen() {
+      const nextTotal = calcTotalCount(currentStage + 1);
+      const isCountIncreasing = nextTotal > totalCount;
+
+      document.getElementById('clearTitle').textContent = `ステージ ${currentStage} クリア！`;
+
+      if (totalCount >= MAX_COUNT) {
+        document.getElementById('clearDesc').innerHTML = `すごすぎる！さいだいレベルの<br><strong style="color:#ff6b6b; font-size:1.15rem;">【1 〜 20】</strong> をマスターしたよ！👑`;
+      } else if (isCountIncreasing) {
+        document.getElementById('clearDesc').innerHTML = `すごい！つぎからは<br><strong style="color:#ff6b6b; font-size:1.15rem;">【1 〜 ${nextTotal}】</strong> にパワーアップ！`;
+      } else {
+        document.getElementById('clearDesc').textContent = `ぜんぶ順番におせたね！そのちょうし！`;
+      }
+
+      document.getElementById('clearScreen').style.display = 'flex';
+    }
+
+    function nextStage() {
+      currentStage++;
+      initGame();
+    }
+
+    function restartFromFirst() {
+      currentStage = 1;
+      initGame();
     }
 
     window.addEventListener('load', initGame);
