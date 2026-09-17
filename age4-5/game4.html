@@ -28,8 +28,8 @@
       animation: pulse-gold 1.2s infinite ease-in-out;
     }
     .glass-card {
-      background: rgba(20, 25, 35, 0.85);
-      backdrop-filter: blur(10px);
+      background: rgba(20, 25, 35, 0.88);
+      backdrop-filter: blur(12px);
     }
   </style>
 </head>
@@ -38,11 +38,11 @@
   <div class="relative w-full max-w-md h-full max-h-[760px] flex flex-col rounded-3xl overflow-hidden border-2 border-amber-600/40 game-shadow bg-sky-300">
     
     <!-- Top HUD Header -->
-    <header class="w-full flex flex-col px-4 py-3 bg-slate-900/90 border-b border-amber-500/30 z-10 shadow-md">
+    <header class="w-full flex flex-col px-4 py-3 bg-slate-900/95 border-b border-amber-500/30 z-10 shadow-md">
       <div class="flex items-center justify-between text-xs sm:text-sm font-bold mb-2">
         <div class="flex items-center space-x-2">
           <span class="text-xl">🧻</span>
-          <span class="text-amber-300">ペーパー: <span id="hud-paper" class="text-white text-base">0</span></span>
+          <span class="text-amber-300">ペーパー: <span id="hud-paper" class="text-white text-base font-extrabold">0</span></span>
         </div>
         <div class="flex items-center space-x-2">
           <span class="text-slate-400">ゴールまで:</span>
@@ -59,6 +59,7 @@
       </div>
     </header>
 
+    <!-- Canvas Area -->
     <div class="relative flex-1 w-full h-full overflow-hidden bg-gradient-to-b from-sky-400 via-lime-200 to-amber-200">
       <canvas id="gameCanvas" class="w-full h-full block"></canvas>
 
@@ -70,11 +71,11 @@
         </h1>
         <p class="text-slate-200 text-xs sm:text-sm text-center mb-4 leading-relaxed max-w-xs">
           空から大量の<span class="text-amber-400 font-bold">うんこ💩</span>が降ってきた！<br>
-          華麗によけてトイレへ駆け込め！
+          華麗によけて便座へ飛び込め！
         </p>
 
         <!-- 設定セレクトエリア -->
-        <div class="w-full max-w-xs bg-slate-800/90 border border-amber-500/40 rounded-2xl p-3 mb-4 space-y-3 shadow-inner text-xs">
+        <div class="w-full max-w-xs bg-slate-800/90 border border-amber-500/40 rounded-2xl p-3.5 mb-4 space-y-3.5 shadow-inner text-xs">
           <!-- 距離選択 -->
           <div>
             <div class="text-[11px] font-bold text-amber-300 mb-1.5 flex items-center justify-between">
@@ -114,11 +115,12 @@
           </div>
         </div>
 
-        <button id="btn-start" class="px-8 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg tracking-wider shadow-lg shadow-orange-500/40 active:scale-95 transition transform">
+        <button id="btn-start" class="w-full max-w-xs py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg tracking-wider shadow-lg shadow-orange-500/40 active:scale-95 transition transform">
           ダッシュ開始！
         </button>
       </div>
 
+      <!-- Result Overlay Screen -->
       <div id="screen-result" class="absolute inset-0 flex flex-col items-center justify-center p-6 glass-card z-20 hidden transition-all">
         <div id="result-icon" class="text-6xl mb-3">💩</div>
         <h2 id="result-title" class="text-3xl sm:text-4xl font-black text-center mb-2 tracking-wide">
@@ -150,6 +152,7 @@
       </div>
     </div>
 
+    <!-- Mobile Bottom Touch Controls -->
     <div class="w-full flex items-center justify-between px-8 py-3 bg-slate-900/95 border-t border-amber-500/20 sm:hidden">
       <button id="btn-left" class="w-20 h-14 bg-slate-800 border-2 border-amber-500/40 rounded-2xl flex items-center justify-center text-amber-300 text-2xl active:bg-amber-500/20 active:scale-90 transition select-none shadow">
         ◀
@@ -241,7 +244,7 @@
     const finalPaper = document.getElementById('final-paper');
     const finalProgress = document.getElementById('final-progress');
 
-    // 距離と速度の設定管理
+    // 距離と速度の設定
     let selectedDistanceMeters = 100;
     let selectedSpeedMultiplier = 1.0;
     let totalDistanceUnits = 1000;
@@ -265,7 +268,7 @@
       speed: basePlayerSpeed
     };
 
-    // 距離選択ボタンのイベント設定
+    // 距離選択ボタンのイベント
     const groupDist = document.getElementById('group-dist');
     const labelSelectedDist = document.getElementById('label-selected-dist');
     groupDist.querySelectorAll('button').forEach(btn => {
@@ -282,7 +285,7 @@
       });
     });
 
-    // スピード選択ボタンのイベント設定
+    // スピード選択ボタンのイベント
     const groupSpeed = document.getElementById('group-speed');
     const labelSelectedSpeed = document.getElementById('label-selected-speed');
     groupSpeed.querySelectorAll('button').forEach(btn => {
@@ -309,6 +312,7 @@
     }
     window.addEventListener('resize', resizeCanvas);
 
+    // Keyboard controls
     const keys = { left: false, right: false };
     window.addEventListener('keydown', (e) => {
       if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
@@ -319,6 +323,7 @@
       if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
     });
 
+    // Touch / Pointer drag controls
     let isPointerDown = false;
     function handlePointer(clientX) {
       const rect = canvas.getBoundingClientRect();
@@ -334,7 +339,7 @@
     });
     window.addEventListener('pointerup', () => { isPointerDown = false; });
 
-    // Mobile buttons
+    // Mobile onscreen buttons
     const btnLeft = document.getElementById('btn-left');
     const btnRight = document.getElementById('btn-right');
     const setupHold = (el, key) => {
@@ -438,24 +443,25 @@
       hudProgressBar.style.width = `${pct}%`;
     }
 
-    // トイレマークのY座標を取得するヘルパー関数
+    // 人の進む速度（道路のスクロール速度）に完全に同期したゴールY座標の算出
     function getGoalToiletY() {
-      const approachDistance = totalDistanceUnits * 0.15; // 残り15%から接近開始
-      const startDist = totalDistanceUnits - approachDistance;
-      if (distance < startDist) return -100;
-      const ratio = Math.min(1.0, (distance - startDist) / approachDistance);
-      // 上部(-50px)からプレイヤーの位置(player.y)まで降りてくる
-      return -50 + ratio * (player.y - (-50));
+      // 道路白線の移動速度: 5 * selectedSpeedMultiplier (px/frame)
+      // distanceの進行速度: 1.8 * selectedSpeedMultiplier (units/frame)
+      // 1 unit あたりの移動ピクセル数 = 5 / 1.8 ≈ 2.778px
+      const pxPerUnit = 5 / 1.8;
+      const remainingUnits = totalDistanceUnits - distance;
+      return player.y - (remainingUnits * pxPerUnit);
     }
 
     function update() {
       if (!isRunning) return;
 
+      const roadScrollSpeed = 5 * selectedSpeedMultiplier;
       distance += 1.8 * selectedSpeedMultiplier;
-      roadStripeOffset = (roadStripeOffset + (5 * selectedSpeedMultiplier)) % 40;
+      roadStripeOffset = (roadStripeOffset + roadScrollSpeed) % 40;
       updateHUD();
 
-      // トイレがプレイヤーの位置まで降りてきたタイミングでゴール判定
+      // トイレがプレイヤーの位置までスクロールして降りてきたタイミングでゴール判定
       const goalY = getGoalToiletY();
       if (goalY >= player.y || distance >= totalDistanceUnits) {
         distance = totalDistanceUnits;
@@ -469,14 +475,20 @@
       player.targetX = Math.max(player.size / 2, Math.min(canvas.width - player.size / 2, player.targetX));
       player.x += (player.targetX - player.x) * 0.25;
 
-      // Spawning with speed adjustment
+      // ゴールが近づいて画面内に見えている間はうんこの新規発生を止めて爽快なゴールインにする
+      const isNearGoal = goalY > -60;
+
+      // Spawning Poop
       spawnTimer++;
       const currentSpawnRate = Math.max(10, Math.floor((35 - (distance / (totalDistanceUnits * 0.05))) / selectedSpeedMultiplier));
       if (spawnTimer >= currentSpawnRate) {
-        spawnPoop();
+        if (!isNearGoal) {
+          spawnPoop();
+        }
         spawnTimer = 0;
       }
 
+      // Spawning Paper
       paperTimer++;
       const currentPaperRate = Math.max(45, Math.floor(85 / selectedSpeedMultiplier));
       if (paperTimer >= currentPaperRate) {
@@ -560,17 +572,31 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Goal Toilet approaching visual effect
-      const approachDistance = totalDistanceUnits * 0.15;
-      if (distance >= totalDistanceUnits - approachDistance) {
-        const goalY = getGoalToiletY();
+      // 人の進行速度（道路スクロール）に合わせて降りてくるゴール＆トイレマーク
+      const goalY = getGoalToiletY();
+      if (goalY > -150 && goalY < canvas.height + 100) {
+        ctx.save();
+        
+        // ゴールゲート・ライン（チェッカーフラッグ風）
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.fillRect(roadX, goalY - 6, roadW, 12);
+        const checkSize = 18;
+        for (let cx = roadX; cx < roadX + roadW; cx += checkSize * 2) {
+          ctx.fillStyle = '#ea580c';
+          ctx.fillRect(cx, goalY - 6, checkSize, 12);
+        }
+
+        // トイレマーク
         ctx.font = '54px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('🚽', canvas.width / 2, goalY);
-        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('🚽', canvas.width / 2, goalY - 32);
+
+        // ゴール看板テキスト
+        ctx.font = '900 15px sans-serif';
         ctx.fillStyle = '#1e293b';
-        ctx.fillText('TOILET GOAL', canvas.width / 2, goalY + 36);
+        ctx.fillText('🏁 TOILET GOAL 🏁', canvas.width / 2, goalY - 72);
+        ctx.restore();
       }
 
       // Draw Items (Toilet Paper)
