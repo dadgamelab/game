@@ -367,7 +367,6 @@
     function spawnPoop() {
       const roadMargin = 30;
       const x = Math.random() * (canvas.width - roadMargin * 2) + roadMargin;
-      // 選択したスピード倍率を反映
       const baseSpd = (Math.random() * 2 + 4.2 + (distance / (totalDistanceUnits * 0.35))) * selectedSpeedMultiplier;
       hazards.push({
         x,
@@ -439,6 +438,16 @@
       hudProgressBar.style.width = `${pct}%`;
     }
 
+    // トイレマークのY座標を取得するヘルパー関数
+    function getGoalToiletY() {
+      const approachDistance = totalDistanceUnits * 0.15; // 残り15%から接近開始
+      const startDist = totalDistanceUnits - approachDistance;
+      if (distance < startDist) return -100;
+      const ratio = Math.min(1.0, (distance - startDist) / approachDistance);
+      // 上部(-50px)からプレイヤーの位置(player.y)まで降りてくる
+      return -50 + ratio * (player.y - (-50));
+    }
+
     function update() {
       if (!isRunning) return;
 
@@ -446,8 +455,10 @@
       roadStripeOffset = (roadStripeOffset + (5 * selectedSpeedMultiplier)) % 40;
       updateHUD();
 
-      // Check Clear
-      if (distance >= totalDistanceUnits) {
+      // トイレがプレイヤーの位置まで降りてきたタイミングでゴール判定
+      const goalY = getGoalToiletY();
+      if (goalY >= player.y || distance >= totalDistanceUnits) {
+        distance = totalDistanceUnits;
         finishGame(true);
         return;
       }
@@ -552,8 +563,7 @@
       // Goal Toilet approaching visual effect
       const approachDistance = totalDistanceUnits * 0.15;
       if (distance >= totalDistanceUnits - approachDistance) {
-        const goalRatio = (distance - (totalDistanceUnits - approachDistance)) / approachDistance;
-        const goalY = goalRatio * 180;
+        const goalY = getGoalToiletY();
         ctx.font = '54px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
