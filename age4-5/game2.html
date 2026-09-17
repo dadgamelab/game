@@ -109,9 +109,11 @@
       display: block;
       border-radius: 8px;
       background: #ffffff;
-      /* 画面の高さや幅に合わせて自動で縮小し、下のボタンが見切れるのを防止 */
-      width: min(320px, 78vw, 43vh);
-      height: min(320px, 78vw, 43vh);
+      /* マスの縦横比1:1（正方形）を維持しつつ、画面下部のボタンが見切れない高さに自動フィット */
+      width: min(340px, 86vw, 46vh);
+      height: min(340px, 86vw, 46vh);
+      touch-action: none;
+      cursor: pointer;
     }
     .controls {
       display: grid;
@@ -206,7 +208,8 @@
   <div class="msg" id="stageMsg">🐱 ねこちゃんを 🐟 おさかなへ！</div>
 
   <div class="maze-wrapper">
-    <canvas id="mazeCanvas" width="330" height="330"></canvas>
+    <!-- 正方形の解像度（340 x 340）に設定 -->
+    <canvas id="mazeCanvas" width="340" height="340"></canvas>
   </div>
 
   <div class="controls">
@@ -427,7 +430,7 @@
       const cellSize = canvas.width / currentSize;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // マップ描画
+      // マップ描画（正方形マス）
       for (let r = 0; r < currentSize; r++) {
         for (let c = 0; c < currentSize; c++) {
           if (grid[r][c] === 1) {
@@ -448,7 +451,7 @@
         }
       }
 
-      // 通った足跡のハイライト
+      // 通った足跡のハイライト（正方形に合わせた綺麗な円）
       visited.forEach(pos => {
         ctx.fillStyle = '#bbf7d0';
         ctx.beginPath();
@@ -531,25 +534,54 @@
       }
     }
 
-    let touchStartX = 0;
-    let touchStartY = 0;
-    canvas.addEventListener('touchstart', (e) => {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    }, { passive: true });
+    let startPointerX = 0;
+    let startPointerY = 0;
 
-    canvas.addEventListener('touchend', (e) => {
-      const diffX = e.changedTouches[0].clientX - touchStartX;
-      const diffY = e.changedTouches[0].clientY - touchStartY;
+    canvas.addEventListener('pointerdown', (e) => {
+      startPointerX = e.clientX;
+      startPointerY = e.clientY;
+    });
 
-      if (Math.hypot(diffX, diffY) > 16) {
+    canvas.addEventListener('pointerup', (e) => {
+      const diffX = e.clientX - startPointerX;
+      const diffY = e.clientY - startPointerY;
+      const dist = Math.hypot(diffX, diffY);
+
+      // 一定以上指を滑らせた場合は「スワイプ」移動
+      if (dist > 18) {
         if (Math.abs(diffX) > Math.abs(diffY)) {
           move(diffX > 0 ? 1 : -1, 0);
         } else {
           move(0, diffY > 0 ? 1 : -1);
         }
+        return;
       }
-    }, { passive: true });
+
+      // 指を滑らせずポンと押した場合は「タップ」操作
+      // Canvas上のタップ位置を計算し、プレイヤーの現在地からの相対方向を判定
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const clickCanvasX = (e.clientX - rect.left) * scaleX;
+      const clickCanvasY = (e.clientY - rect.top) * scaleY;
+
+      const cellSize = canvas.width / currentSize;
+
+      // プレイヤーマスの中心座標
+      const playerCenterX = (player.x + 0.5) * cellSize;
+      const playerCenterY = (player.y + 0.5) * cellSize;
+
+      const deltaX = clickCanvasX - playerCenterX;
+      const deltaY = clickCanvasY - playerCenterY;
+
+      // プレイヤーに対してタップされた方向（上・下・左・右）へ1歩進む
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        move(deltaX > 0 ? 1 : -1, 0);
+      } else {
+        move(0, deltaY > 0 ? 1 : -1);
+      }
+    });
 
     // PCキーボード（矢印キー）対応
     window.addEventListener('keydown', (e) => {
