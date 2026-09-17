@@ -3,121 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>とうちゃんのゲームラボ</title>
+  <title>とうちゃんのゲームラボ - こども向け無料知育ゲーム</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
     * {
-      margin: 0;
-      padding: 0;
       box-sizing: border-box;
       user-select: none;
       -webkit-user-select: none;
-      -webkit-touch-callout: none;
     }
     body {
-      background: #fdfaf6;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at 50% 20%, #fffbf2 0%, #f7f9fe 100%);
+      font-family: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
     }
-    header {
-      text-align: center;
-      margin-bottom: 24px;
+
+    /* ポップな立体ぷっくり文字 */
+    .pop-char {
+      display: inline-block;
+      font-weight: 900;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
     }
-    h1 {
-      font-size: 1.6rem;
-      color: #333;
-      margin-bottom: 6px;
+    .pop-char:hover, .pop-char:active {
+      transform: scale(1.25) rotate(-6deg);
     }
-    p.sub {
-      font-size: 0.95rem;
-      color: #777;
+
+    /* 各文字のぷっくり立体シャドウ */
+    .c-red    { color: #ff5252; text-shadow: 0 4px 0 #d32f2f, 0 8px 12px rgba(255,82,82,0.25); }
+    .c-orange { color: #ff9100; text-shadow: 0 4px 0 #e65100, 0 8px 12px rgba(255,145,0,0.25); }
+    .c-yellow { color: #ffd600; text-shadow: 0 4px 0 #f57f17, 0 8px 12px rgba(255,214,0,0.25); }
+    .c-green  { color: #00e676; text-shadow: 0 4px 0 #00a152, 0 8px 12px rgba(0,230,118,0.25); }
+    .c-cyan   { color: #00e5ff; text-shadow: 0 4px 0 #0097a7, 0 8px 12px rgba(0,229,255,0.25); }
+    .c-blue   { color: #2979ff; text-shadow: 0 4px 0 #1565c0, 0 8px 12px rgba(41,121,255,0.25); }
+    .c-purple { color: #b388ff; text-shadow: 0 4px 0 #651fff, 0 8px 12px rgba(179,136,255,0.25); }
+    .c-pink   { color: #ff4081; text-shadow: 0 4px 0 #c2185b, 0 8px 12px rgba(255,64,129,0.25); }
+
+    /* ふわふわ揺れるアニメーション */
+    @keyframes floating-star {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(8deg); }
     }
-    .menu-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 100%;
-      max-width: 360px;
-    }
-    .age-card {
-      display: flex;
-      align-items: center;
-      text-decoration: none;
-      padding: 18px 20px;
-      border-radius: 20px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
-      color: #fff;
-    }
-    .age-card:active {
-      transform: scale(0.97);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-    .card-age2 { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
-    .card-age3 { background: linear-gradient(135deg, #a1c4fd, #c2e9fb); }
-    .card-age4 { background: linear-gradient(135deg, #84fab0, #8fd3f4); }
-    .icon {
-      font-size: 2.2rem;
-      margin-right: 16px;
-    }
-    .text-wrap {
-      display: flex;
-      flex-direction: column;
-    }
-    .title {
-      font-size: 1.25rem;
-      font-weight: bold;
-      color: #333;
-    }
-    .desc {
-      font-size: 0.85rem;
-      color: #555;
-      margin-top: 2px;
+    .float-item {
+      animation: floating-star 2.4s ease-in-out infinite;
     }
   </style>
 </head>
-<body>
+<body class="flex flex-col items-center justify-between p-4 sm:p-6 text-slate-800 antialiased">
 
-  <header>
-    <h1>とうちゃんのゲームラボ</h1>
-    <p class="sub">なんさいの ゲームであそぶ？</p>
-  </header>
+  <main class="w-full max-w-sm flex flex-col items-center mt-3 sm:mt-6">
 
-  <div class="menu-container">
-    <a href="age2/" class="age-card card-age2">
-      <span class="icon">🐣</span>
-      <div class="text-wrap">
-        <span class="title">2さい</span>
-        <span class="desc">さわると音がなる・動くあそび</span>
+    <!-- ヘッダー・タイトル部分 -->
+    <div class="text-center mb-6">
+      
+      <!-- キラキラとサブタイトル -->
+      <div class="inline-flex items-center justify-center space-x-1.5 px-3.5 py-1 rounded-full bg-amber-100/80 border border-amber-300/60 shadow-sm mb-3">
+        <span class="text-sm float-item">✨</span>
+        <span class="text-[11px] font-bold text-amber-900 tracking-wide">とうちゃんの完全無料・知育ゲーム</span>
+        <span class="text-sm float-item" style="animation-delay: 1.2s;">🎈</span>
       </div>
-    </a>
 
-    <a href="age3/" class="age-card card-age3">
-      <span class="icon">🚗</span>
-      <div class="text-wrap">
-        <span class="title">3さい</span>
-        <span class="desc">いろ・かたち・かんたんクイズ</span>
-      </div>
-    </a>
+      <!-- カラフルポップなメインロゴ -->
+      <h1 class="text-[32px] sm:text-[38px] tracking-wider leading-none mb-3 font-black select-none drop-shadow-sm flex items-center justify-center flex-wrap">
+        <span class="pop-char c-red -rotate-3">と</span>
+        <span class="pop-char c-orange rotate-2">う</span>
+        <span class="pop-char c-yellow -rotate-2">ち</span>
+        <span class="pop-char c-pink rotate-3">ゃ</span>
+        <span class="pop-char c-blue -rotate-1">ん</span>
+        <span class="pop-char c-purple rotate-2">の</span>
+        <span class="inline-block w-2 sm:w-3"></span>
+        <span class="pop-char c-green -rotate-3">ゲ</span>
+        <span class="pop-char c-cyan rotate-1">ー</span>
+        <span class="pop-char c-orange -rotate-2">ム</span>
+        <span class="pop-char c-pink rotate-3">ラ</span>
+        <span class="pop-char c-yellow -rotate-1">ボ</span>
+      </h1>
 
-    <a href="age4-5/" class="age-card card-age4">
-      <span class="icon">🧩</span>
-      <div class="text-wrap">
-        <span class="title">4〜5さい</span>
-        <span class="desc">パズル・すうじ・ひらめきあそび</span>
-      </div>
+      <p class="text-xs sm:text-sm font-bold text-slate-500 tracking-wide mt-1">
+        なんさいの ゲームで あそぶ？
+      </p>
+    </div>
+
+    <!-- 年齢別選択ボタン一覧 -->
+    <div class="w-full flex flex-col space-y-4">
+
+      <!-- 2さい -->
+      <a href="age2/index.html" class="group relative overflow-hidden rounded-3xl p-5 bg-gradient-to-r from-rose-400 via-pink-400 to-rose-300 text-white shadow-lg shadow-rose-400/30 border-2 border-white/60 active:scale-95 hover:shadow-rose-400/45 transition duration-150 flex items-center">
+        <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-xs flex items-center justify-center text-4xl shadow-inner mr-4 shrink-0 group-hover:scale-110 transition">
+          🐣
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl font-black tracking-wide text-white drop-shadow-sm">2さい</span>
+            <span class="text-[10px] bg-white/25 px-2 py-0.5 rounded-full font-bold">はじめて</span>
+          </div>
+          <p class="text-xs text-rose-50/95 font-bold mt-1 tracking-wide">
+            さわると音がなる・動くあそび
+          </p>
+        </div>
+        <div class="text-white/60 text-xl font-black group-hover:translate-x-1 transition">
+          ➜
+        </div>
+      </a>
+
+      <!-- 3さい -->
+      <a href="age3/index.html" class="group relative overflow-hidden rounded-3xl p-5 bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 text-white shadow-lg shadow-sky-400/30 border-2 border-white/60 active:scale-95 hover:shadow-sky-400/45 transition duration-150 flex items-center">
+        <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-xs flex items-center justify-center text-4xl shadow-inner mr-4 shrink-0 group-hover:scale-110 transition">
+          🚗
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl font-black tracking-wide text-white drop-shadow-sm">3さい</span>
+            <span class="text-[10px] bg-white/25 px-2 py-0.5 rounded-full font-bold">たのしい</span>
+          </div>
+          <p class="text-xs text-sky-50/95 font-bold mt-1 tracking-wide">
+            いろ・かたち・かんたんクイズ
+          </p>
+        </div>
+        <div class="text-white/60 text-xl font-black group-hover:translate-x-1 transition">
+          ➜
+        </div>
+      </a>
+
+      <!-- 4〜5さい -->
+      <a href="age4-5/index.html" class="group relative overflow-hidden rounded-3xl p-5 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 text-white shadow-lg shadow-emerald-400/30 border-2 border-white/60 active:scale-95 hover:shadow-emerald-400/45 transition duration-150 flex items-center">
+        <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-xs flex items-center justify-center text-4xl shadow-inner mr-4 shrink-0 group-hover:scale-110 transition">
+          🧩
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl font-black tracking-wide text-white drop-shadow-sm">4〜5さい</span>
+            <span class="text-[10px] bg-white/25 px-2 py-0.5 rounded-full font-bold">わくわく</span>
+          </div>
+          <p class="text-xs text-emerald-50/95 font-bold mt-1 tracking-wide">
+            めいろ・すうじ・アクション
+          </p>
+        </div>
+        <div class="text-white/60 text-xl font-black group-hover:translate-x-1 transition">
+          ➜
+        </div>
+      </a>
+
+    </div>
+
+  </main>
+
+  <!-- フッター・利用規約リンク -->
+  <footer class="mt-8 mb-2 text-center">
+    <a href="terms.html" class="text-xs text-slate-400 hover:text-slate-600 underline font-medium transition active:scale-95 inline-block">
+      利用規約・免責事項
     </a>
-  </div>
-  
-  <footer style="margin-top: 32px; font-size: 0.75rem; text-align: center;">
-  <a href="terms.html" style="color: #94a3b8; text-decoration: underline;">
-    利用規約・免責事項
-  </a>
-</footer>
+    <p class="text-[10px] text-slate-400 mt-2 font-medium">
+      © 2026 とうちゃんのゲームラボ
+    </p>
+  </footer>
 
 </body>
 </html>
