@@ -3,179 +3,321 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>いろ・かたちクイズ - とうちゃんのゲームラボ</title>
+  <title>とうちゃんのゲームラボ - どれかな？クイズ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+
   <style>
     * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
     }
     body {
-      background: #f0f7ff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 24px 16px;
+      font-family: 'Zen Maru Gothic', sans-serif;
       touch-action: manipulation;
+      background-color: #FFFDF7;
     }
-    header {
-      text-align: center;
-      margin-top: 10px;
+
+    /* ぷるぷるアニメーション */
+    @keyframes wobble {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-3deg) scale(1.02); }
+      75% { transform: rotate(3deg) scale(1.02); }
     }
-    .back-btn {
-      display: inline-block;
-      text-decoration: none;
-      background: #fff;
-      color: #666;
-      font-size: 0.9rem;
-      padding: 6px 14px;
-      border-radius: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      margin-bottom: 12px;
+    .animate-wobble {
+      animation: wobble 2.4s infinite ease-in-out;
     }
-    h1 {
-      font-size: 1.4rem;
-      color: #333;
+
+    /* 間違えたときのブルブルシェイク */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px) rotate(-3deg); }
+      40% { transform: translateX(8px) rotate(3deg); }
+      60% { transform: translateX(-6px) rotate(-2deg); }
+      80% { transform: translateX(6px) rotate(2deg); }
     }
-    .question-box {
-      background: #fff;
-      padding: 20px 30px;
-      border-radius: 24px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-      text-align: center;
-      margin: 20px 0;
+    .animate-shake {
+      animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
     }
-    .question-target {
-      font-size: 3rem;
-      font-weight: bold;
-      color: #ff5e7e;
-      margin-top: 8px;
+
+    /* 正解カードのピョンピョン跳ね */
+    @keyframes correctBounce {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.18) translateY(-14px); }
+      65% { transform: scale(0.95) translateY(4px); }
+      100% { transform: scale(1.05) translateY(-4px); }
     }
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      width: 100%;
-      max-width: 320px;
+    .animate-correct {
+      animation: correctBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
-    .choice-card {
-      aspect-ratio: 1;
-      background: #fff;
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 4rem;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-      cursor: pointer;
-      transition: transform 0.1s ease;
-      border: 4px solid transparent;
+
+    /* 紙吹雪パーティクル */
+    .particle {
+      position: absolute;
+      pointer-events: none;
+      animation: popParticle 0.85s ease-out forwards;
+      z-index: 50;
     }
-    .choice-card:active {
-      transform: scale(0.92);
-    }
-    .correct-anim {
-      border-color: #4cd964 !important;
-      animation: bounce 0.4s ease;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.15); }
+    @keyframes popParticle {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
     }
   </style>
 </head>
-<body>
 
-  <header>
-    <a href="../" class="back-btn">⬅ もどる</a>
-    <h1>どれかな？クイズ</h1>
-  </header>
+<body class="min-h-screen flex flex-col items-center justify-start text-gray-800 antialiased p-3 sm:p-5 select-none overflow-x-hidden">
 
-  <div class="question-box">
-    <div style="font-size: 1.1rem; color: #666;">これとおなじのを えらんでね！</div>
-    <div class="question-target" id="targetEmoji">🍎</div>
-  </div>
+  <main class="w-full max-w-sm sm:max-w-md flex flex-col items-center py-2 h-[94vh] max-h-[850px] justify-between">
 
-  <div class="cards-grid" id="cardsGrid"></div>
+    <!-- ヘッダー部（統一された戻るボタン＆スコア表示） -->
+    <header class="w-full flex items-center justify-between px-1 mb-2">
+      <!-- 統一された戻るボタン -->
+      <button onclick="handleBack()" class="px-3.5 py-1.5 bg-white rounded-full text-gray-700 text-xs sm:text-sm font-bold shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition flex items-center gap-1.5">
+        <span>⬅</span>
+        <span>もどる</span>
+      </button>
 
-  <div style="height: 20px;"></div>
+      <!-- 3さい向けスカイブルーバッジ＆スコアスター -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-0.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs font-black text-amber-700 shadow-sm">
+          <span>⭐</span>
+          <span id="star-count">0</span>
+        </div>
+        <div class="inline-flex items-center gap-1 px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-black border border-sky-200">
+          <span>🎨</span>
+          <span>3さいのクイズ</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ガイド・問題見出し -->
+    <div class="text-center my-1 w-full px-2">
+      <div class="inline-block px-4 py-1.5 rounded-2xl bg-sky-50 border border-sky-200 text-sky-900 shadow-sm mb-1">
+        <p class="text-sm sm:text-base font-black tracking-wide flex items-center justify-center gap-1.5">
+          <span class="animate-bounce">👀</span>
+          <span>これと おなじのを えらんでね！</span>
+          <span class="animate-bounce">✨</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- ゲームメイン枠（点線カードUI） -->
+    <div id="stage" class="relative w-full flex-1 bg-white rounded-3xl border-4 border-dashed border-sky-200 shadow-[0_15px_30px_-5px_rgba(56,189,248,0.18)] flex flex-col items-center justify-around p-3 sm:p-4 overflow-hidden select-none">
+
+      <!-- 背景デコレーション -->
+      <div class="absolute inset-0 pointer-events-none opacity-25 flex flex-col justify-between p-4">
+        <div class="flex justify-between text-2xl">
+          <span class="animate-pulse">☁️</span>
+          <span class="animate-pulse" style="animation-delay: 1s;">✨</span>
+        </div>
+        <div class="flex justify-between text-xl">
+          <span>🎈</span>
+          <span>🌈</span>
+        </div>
+      </div>
+
+      <!-- お題ターゲット表示ボックス -->
+      <div class="relative z-10 flex flex-col items-center bg-gradient-to-b from-amber-50 to-orange-50/50 border-2 border-amber-200 rounded-2xl px-6 py-2.5 shadow-sm">
+        <span class="text-xs font-bold text-amber-800 mb-0.5">さがすもの 🔍</span>
+        <div id="targetEmoji" class="text-6xl sm:text-7xl drop-shadow transition-transform hover:scale-110 select-none animate-wobble">
+          🍎
+        </div>
+        <span id="targetName" class="text-xs sm:text-sm font-black text-amber-900 mt-1 px-2.5 py-0.5 rounded-full bg-white/90 border border-amber-200">
+          りんご
+        </span>
+      </div>
+
+      <!-- 4択カードグリッドコンテナ (2x2) -->
+      <div id="cardsGrid" class="relative w-full max-w-[300px] grid grid-cols-2 gap-3 sm:gap-4 z-10">
+        <!-- JSで動的生成 -->
+      </div>
+
+      <!-- 下部ヒントチップ -->
+      <div class="px-4 py-1 rounded-full bg-sky-50/90 border border-sky-200 text-sky-700 text-xs font-bold flex items-center gap-1.5 shadow-sm pointer-events-none whitespace-nowrap z-10">
+        <span>💡</span>
+        <span>おなじ え を ぽん！と タップしよう</span>
+      </div>
+    </div>
+
+    <!-- 下部スキップ/つぎへボタン -->
+    <div class="w-full flex flex-col items-center gap-1 py-1.5">
+      <button onclick="skipToNext()" class="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 active:scale-95 text-white font-black text-sm sm:text-base shadow-md transition flex items-center justify-center gap-2">
+        <span>🔄</span>
+        <span>つぎの もんだいへ</span>
+      </button>
+
+      <!-- コピーライト -->
+      <div class="text-[11px] text-gray-400 font-bold text-center mt-1">
+        とうちゃんのゲームラボ 🐣 完全無料・安心設計
+      </div>
+    </div>
+
+  </main>
 
   <script>
+    // Web Audio APIによる効果音エンジン（外部通信不要）
+    const SoundEffects = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      // ボタンタップ音
+      playTap() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      },
+      // 正解音（明るいピンポン音）
+      playCorrect() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+          gain.gain.setValueAtTime(0.28, now + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.28);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.07);
+          osc.stop(now + idx * 0.07 + 0.3);
+        });
+      },
+      // 不正解音（やさしいぽよん音）
+      playWrong() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(240, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.16);
+
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      }
+    };
+
+    // 戻るボタンの安全な遷移処理
+    function handleBack() {
+      SoundEffects.playTap();
+      setTimeout(() => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = './index.html';
+        }
+      }, 100);
+    }
+
     const items = [
       { emoji: '🍎', name: 'りんご' },
-      { emoji: '🍌', name: 'ばなな' },
+      { emoji: '🍌', name: 'バナナ' },
       { emoji: '🚗', name: 'くるま' },
       { emoji: '🐶', name: 'いぬ' },
       { emoji: '⭐', name: 'ほし' },
-      { emoji: '⚽', name: 'ぼーる' },
+      { emoji: '⚽', name: 'ボール' },
       { emoji: '🍓', name: 'いちご' },
-      { emoji: '🐱', name: 'ねこ' }
+      { emoji: '🐱', name: 'ねこ' },
+      { emoji: '🐰', name: 'うさぎ' },
+      { emoji: '🚀', name: 'ロケット' },
+      { emoji: '🍇', name: 'ぶどう' },
+      { emoji: '🐼', name: 'パンダ' }
     ];
 
     let currentTarget = null;
-    let audioCtx = null;
+    let starCount = 0;
+    let isAnswering = false;
 
-    function playSound(isCorrect) {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      
-      if (isCorrect) {
-        // ピロリン♪（正解音）
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // ド
-        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // ミ
-        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // ソ
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
-      } else {
-        // ポフッ（不正解音）
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.15);
-      }
-    }
-
+    // 問題の生成
     function newQuestion() {
+      isAnswering = false;
+
+      // ランダムに4種類を抽出
       const shuffled = [...items].sort(() => 0.5 - Math.random());
       const choices = shuffled.slice(0, 4);
       currentTarget = choices[Math.floor(Math.random() * choices.length)];
 
+      // お題の表示更新
       document.getElementById('targetEmoji').textContent = currentTarget.emoji;
+      document.getElementById('targetName').textContent = currentTarget.name;
 
+      // 選択肢カードの描画
       const grid = document.getElementById('cardsGrid');
       grid.innerHTML = '';
 
       choices.forEach(item => {
-        const btn = document.createElement('div');
-        btn.className = 'choice-card';
-        btn.textContent = item.emoji;
+        const btn = document.createElement('button');
+        btn.className = 'w-full aspect-square rounded-2xl bg-gradient-to-b from-white to-sky-50/50 border-4 border-sky-200 hover:border-sky-300 shadow-md active:scale-95 transition-all flex flex-col items-center justify-center p-2 group';
+        
+        btn.innerHTML = `
+          <span class="text-5xl sm:text-6xl drop-shadow-sm select-none group-active:scale-95 transition-transform">
+            ${item.emoji}
+          </span>
+          <span class="text-xs font-black text-gray-700 mt-1 px-2 py-0.5 rounded-full bg-white/80 border border-sky-100">
+            ${item.name}
+          </span>
+        `;
 
-        btn.addEventListener('pointerdown', () => {
+        btn.addEventListener('pointerdown', (e) => {
+          if (isAnswering) return;
+
           if (item.emoji === currentTarget.emoji) {
-            playSound(true);
-            btn.classList.add('correct-anim');
-            setTimeout(newQuestion, 600);
+            // 正解
+            isAnswering = true;
+            SoundEffects.playCorrect();
+
+            btn.classList.remove('border-sky-200');
+            btn.classList.add('border-emerald-400', 'bg-emerald-50', 'animate-correct', 'shadow-xl');
+
+            starCount++;
+            document.getElementById('star-count').textContent = starCount;
+
+            const rect = btn.getBoundingClientRect();
+            spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+            setTimeout(newQuestion, 900);
           } else {
-            playSound(false);
-            btn.style.transform = 'translateX(-8px)';
-            setTimeout(() => btn.style.transform = 'translateX(8px)', 80);
-            setTimeout(() => btn.style.transform = 'none', 160);
+            // 不正解
+            SoundEffects.playWrong();
+            btn.classList.add('animate-shake', 'border-amber-300', 'bg-amber-50');
+            setTimeout(() => {
+              btn.classList.remove('animate-shake', 'border-amber-300', 'bg-amber-50');
+            }, 450);
           }
         });
 
@@ -183,7 +325,41 @@
       });
     }
 
-    newQuestion();
+    // スキップ処理
+    function skipToNext() {
+      SoundEffects.playTap();
+      newQuestion();
+    }
+
+    // 正解時の紙吹雪パーティクル
+    function spawnParticles(x, y) {
+      const symbols = ['⭐', '✨', '💮', '🎉', '🌸'];
+      for (let i = 0; i < 10; i++) {
+        const p = document.createElement('span');
+        p.className = 'particle text-xl';
+        p.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+
+        const angle = (Math.PI * 2 / 10) * i + (Math.random() * 0.4);
+        const dist = 50 + Math.random() * 50;
+        p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+        p.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+        p.style.left = `${x}px`;
+        p.style.top = `${y}px`;
+
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 850);
+      }
+    }
+
+    // 初期化とオーディオ解放
+    window.addEventListener('DOMContentLoaded', () => {
+      newQuestion();
+      const unlock = () => {
+        SoundEffects.init();
+        document.removeEventListener('pointerdown', unlock);
+      };
+      document.addEventListener('pointerdown', unlock);
+    });
   </script>
 </body>
 </html>
