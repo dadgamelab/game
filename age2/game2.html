@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>とうちゃんのゲームラボ - いないいないばぁ！扉</title>
+  <title>いないいないばぁ！扉 - とうちゃんの知育ゲーム</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  
   <style>
     body {
       font-family: 'Zen Maru Gothic', sans-serif;
@@ -17,14 +18,6 @@
       touch-action: manipulation;
       background-color: #FFFDF7;
     }
-
-    /* 3D風テキストシャドウ */
-    .title-shadow-red { text-shadow: 0 4px 0 #ea580c; }
-    .title-shadow-orange { text-shadow: 0 4px 0 #c2410c; }
-    .title-shadow-yellow { text-shadow: 0 4px 0 #ca8a04; }
-    .title-shadow-green { text-shadow: 0 4px 0 #15803d; }
-    .title-shadow-blue { text-shadow: 0 4px 0 #1d4ed8; }
-    .title-shadow-purple { text-shadow: 0 4px 0 #6b21a8; }
 
     /* 扉の3Dパースペクティブ */
     .door-perspective {
@@ -94,7 +87,7 @@
       animation: popBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
-    /* ぷるぷるアニメーション */
+    /* ガイドのぷるぷるアニメーション */
     @keyframes wobble {
       0%, 100% { transform: rotate(0deg); }
       25% { transform: rotate(-4deg) scale(1.02); }
@@ -104,7 +97,7 @@
       animation: wobble 2.2s infinite ease-in-out;
     }
 
-    /* 紙吹雪・パーティクル */
+    /* パーティクル */
     .particle {
       position: absolute;
       pointer-events: none;
@@ -117,145 +110,14 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-start text-gray-800 antialiased p-3 sm:p-5 select-none overflow-x-hidden">
 
-  <!-- ==================== VIEW 1: トップ画面 ==================== -->
-  <main id="view-top" class="w-full max-w-sm sm:max-w-md flex flex-col items-center py-4 transition-opacity duration-300">
-    <!-- バッジ -->
-    <div class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#FFF4D4] border border-[#FFE08A] rounded-full text-[#B45309] text-xs sm:text-sm font-bold shadow-sm mb-4">
-      <span>✨</span>
-      <span>とうちゃんの完全無料・知育ゲーム</span>
-      <span>🎈</span>
-    </div>
+<body class="min-h-screen flex flex-col items-center justify-center text-gray-800 antialiased p-3 sm:p-5 select-none overflow-x-hidden">
 
-    <!-- メインタイトル -->
-    <div class="text-center mb-1">
-      <div class="flex items-center justify-center gap-1 text-4xl sm:text-5xl font-black tracking-wider leading-tight">
-        <span class="text-[#EF4444] drop-shadow-md">と</span>
-        <span class="text-[#F97316] drop-shadow-md">う</span>
-        <span class="text-[#EAB308] drop-shadow-md">ち</span>
-        <span class="text-[#EC4899] drop-shadow-md">ゃ</span>
-        <span class="text-[#3B82F6] drop-shadow-md">ん</span>
-        <span class="text-[#8B5CF6] drop-shadow-md text-3xl sm:text-4xl ml-1">の</span>
-      </div>
-      <div class="flex items-center justify-center gap-1.5 text-4xl sm:text-5xl font-black tracking-wider leading-tight mt-1">
-        <span class="text-[#10B981] drop-shadow-md">ゲ</span>
-        <span class="text-[#06B6D4] drop-shadow-md">ー</span>
-        <span class="text-[#F59E0B] drop-shadow-md">ム</span>
-        <span class="text-[#EC4899] drop-shadow-md">ラ</span>
-        <span class="text-[#EAB308] drop-shadow-md">ボ</span>
-      </div>
-    </div>
-
-    <!-- サブタイトル -->
-    <p class="text-[#475569] font-bold text-base sm:text-lg mt-3 mb-6 tracking-wide">
-      なんさいの ゲームで あそぶ？
-    </p>
-
-    <!-- 年齢選択リスト -->
-    <div class="w-full flex flex-col gap-4">
-      <!-- 2さいボタン（クリックで2歳メニューへ） -->
-      <button onclick="switchView('view-menu')" class="group relative w-full text-left p-4 rounded-3xl bg-gradient-to-r from-[#F472B6] to-[#FB7185] text-white shadow-[0_10px_20px_-5px_rgba(244,114,182,0.45)] hover:shadow-lg active:scale-98 transition transform flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-sm flex items-center justify-center text-3xl shadow-inner">
-            🐣
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-2xl font-black">2さい</span>
-              <span class="bg-white/30 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">はじめて</span>
-            </div>
-            <p class="text-xs sm:text-sm text-pink-100 font-bold mt-1">さわると音がなる・動くあそび</p>
-          </div>
-        </div>
-        <div class="text-white text-2xl pr-2 font-bold group-hover:translate-x-1 transition-transform">➔</div>
-      </button>
-
-      <!-- 3さいボタン -->
-      <button onclick="showSimpleToast('3さいのゲームも じゅんびちゅうだよ！')" class="group relative w-full text-left p-4 rounded-3xl bg-gradient-to-r from-[#38BDF8] to-[#60A5FA] text-white shadow-[0_10px_20px_-5px_rgba(56,189,248,0.45)] hover:shadow-lg active:scale-98 transition transform flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-sm flex items-center justify-center text-3xl shadow-inner">
-            🚗
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-2xl font-black">3さい</span>
-              <span class="bg-white/30 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">たのしい</span>
-            </div>
-            <p class="text-xs sm:text-sm text-sky-100 font-bold mt-1">いろ・かたち・かんたんクイズ</p>
-          </div>
-        </div>
-        <div class="text-white text-2xl pr-2 font-bold group-hover:translate-x-1 transition-transform">➔</div>
-      </button>
-
-      <!-- 4~5さいボタン -->
-      <button onclick="showSimpleToast('4〜5さいのゲームも じゅんびちゅうだよ！')" class="group relative w-full text-left p-4 rounded-3xl bg-gradient-to-r from-[#34D399] to-[#2DD4BF] text-white shadow-[0_10px_20px_-5px_rgba(52,211,153,0.45)] hover:shadow-lg active:scale-98 transition transform flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-sm flex items-center justify-center text-3xl shadow-inner">
-            🧩
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-2xl font-black">4〜5さい</span>
-              <span class="bg-white/30 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">わくわく</span>
-            </div>
-            <p class="text-xs sm:text-sm text-emerald-100 font-bold mt-1">めいろ・すうじ・アクション</p>
-          </div>
-        </div>
-        <div class="text-white text-2xl pr-2 font-bold group-hover:translate-x-1 transition-transform">➔</div>
-      </button>
-    </div>
-  </main>
-  <!-- ==================== VIEW 2: 2さいのゲーム一覧 ==================== -->
-  <main id="view-menu" class="hidden w-full max-w-sm sm:max-w-md flex-col items-start py-4 transition-opacity duration-300">
-    <!-- もどるボタン -->
-    <button onclick="switchView('view-top')" class="px-4 py-2 bg-white rounded-full text-gray-700 text-sm font-bold shadow-md hover:bg-gray-50 active:scale-95 transition flex items-center gap-1.5 border border-gray-100 mb-5">
-      <span>⬅</span>
-      <span>トップへもどる</span>
-    </button>
-
-    <!-- 見出し -->
-    <div class="flex items-center gap-2 mb-1">
-      <span class="text-3xl">🐣</span>
-      <h2 class="text-2xl font-black text-[#E11D48] tracking-tight">2さいのゲーム</h2>
-    </div>
-    <p class="text-gray-500 font-bold text-sm mb-6">すきな あそびを えらんでね！</p>
-
-    <!-- ゲーム一覧リスト -->
-    <div class="w-full flex flex-col gap-4">
-      <!-- いないいないばぁ！扉（メイン） -->
-      <button onclick="startGame('door')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-amber-300 hover:border-amber-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-100 to-amber-200 flex items-center justify-center text-3xl shadow-inner border border-amber-200/60">
-          🚪
-        </div>
-        <div class="flex-1">
-          <div class="flex items-center gap-1.5">
-            <h3 class="text-lg font-black text-gray-800 group-hover:text-amber-600 transition">いないいないばぁ！扉</h3>
-            <span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-black">にんき</span>
-          </div>
-          <p class="text-xs text-gray-500 font-medium mt-1">タッチで とびらが パッと ひらくよ！</p>
-        </div>
-        <div class="text-amber-400 text-xl font-bold pr-1">➔</div>
-      </button>
-
-      <!-- ぽんぽんタッチ（既存作イメージ） -->
-      <button onclick="startGame('touch')" class="w-full text-left p-4 rounded-3xl bg-white border border-pink-100 hover:border-pink-200 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group">
-        <div class="w-16 h-16 rounded-2xl bg-[#FFF1F2] flex items-center justify-center text-3xl shadow-inner">
-          ⭐
-        </div>
-        <div class="flex-1">
-          <h3 class="text-lg font-black text-gray-800">ぽんぽんタッチ</h3>
-          <p class="text-xs text-gray-500 font-medium mt-1">がめんを タップして おとをならそう！</p>
-        </div>
-        <div class="text-pink-300 text-xl font-bold pr-1">➔</div>
-      </button>
-    </div>
-  </main>
-  <!-- ==================== VIEW 3: いないいないばぁ！扉 ゲーム画面 ==================== -->
-  <main id="view-game" class="hidden w-full max-w-sm sm:max-w-md flex flex-col items-center py-2 h-[94vh] max-h-[850px] justify-between">
-    <!-- ヘッダー操作部 -->
+  <main class="w-full max-w-sm sm:max-w-md flex flex-col items-center py-2 h-[94vh] max-h-[850px] justify-between">
+    
+    <!-- ヘッダー操作部（戻るボタン & テーマ切り替えタブ） -->
     <div class="w-full flex items-center justify-between px-1 mb-2">
-      <button onclick="switchView('view-menu')" class="px-3.5 py-1.5 bg-white rounded-full text-gray-600 text-xs font-bold shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition flex items-center gap-1">
+      <button onclick="handleBack()" class="px-3.5 py-1.5 bg-white rounded-full text-gray-600 text-xs font-bold shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition flex items-center gap-1">
         <span>⬅</span>
         <span>もどる</span>
       </button>
@@ -277,11 +139,11 @@
       </p>
     </div>
 
-    <!-- ゲームメイン枠（点線ボーダーのカードUI） -->
+    <!-- ゲームメイン枠（点線カードUI） -->
     <div id="interactive-stage" onclick="handleStageClick(event)" class="relative w-full flex-1 bg-white rounded-3xl border-4 border-dashed border-amber-200/80 shadow-[0_15px_30px_-5px_rgba(251,191,36,0.15)] flex flex-col items-center justify-center p-3 sm:p-5 overflow-hidden cursor-pointer active:scale-[0.99] transition-transform">
       
-      <!-- 背景デコレーション（窓・星・雲） -->
-      <div id="bg-decorations" class="absolute inset-0 pointer-events-none opacity-40 flex flex-col justify-between p-4">
+      <!-- 背景デコレーション -->
+      <div class="absolute inset-0 pointer-events-none opacity-40 flex flex-col justify-between p-4">
         <div class="flex justify-between">
           <span class="text-2xl animate-pulse">☁️</span>
           <span class="text-2xl animate-pulse" style="animation-delay: 1s;">✨</span>
@@ -292,7 +154,7 @@
         </div>
       </div>
 
-      <!-- ==================== ステージ要素 ==================== -->
+      <!-- ==================== ステージコンテナ ==================== -->
       <div class="relative w-full max-w-[280px] h-[340px] flex items-center justify-center">
 
         <!-- 隠れている中身（動物・乗り物・食べ物など） -->
@@ -311,19 +173,17 @@
           </span>
         </div>
 
-        <!-- 1. シンプルな扉モード (屋根や遮蔽壁を撤廃し扉のみに) -->
+        <!-- 1. 扉モード（シンプルな木目調両開き扉） -->
         <div id="theme-house" class="door-perspective absolute inset-0 z-20 flex items-center justify-center">
           <div class="relative w-full h-full rounded-3xl border-4 border-amber-600/30 flex overflow-visible bg-transparent shadow-sm">
             <!-- 左扉 -->
             <div id="door-l" class="door-left w-1/2 h-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 rounded-l-2xl border-r-2 border-amber-700 shadow-md flex items-center justify-end pr-3">
-              <!-- ドアノブ -->
               <div class="w-5 h-5 rounded-full bg-yellow-200 border-2 border-amber-800 shadow flex items-center justify-center">
                 <div class="w-1.5 h-1.5 rounded-full bg-amber-700"></div>
               </div>
             </div>
             <!-- 右扉 -->
             <div id="door-r" class="door-right w-1/2 h-full bg-gradient-to-l from-amber-500 via-amber-400 to-amber-500 rounded-r-2xl border-l-2 border-amber-700 shadow-md flex items-center justify-start pl-3">
-              <!-- ドアノブ -->
               <div class="w-5 h-5 rounded-full bg-yellow-200 border-2 border-amber-800 shadow flex items-center justify-center">
                 <div class="w-1.5 h-1.5 rounded-full bg-amber-700"></div>
               </div>
@@ -369,13 +229,9 @@
       </button>
     </div>
   </main>
-  <!-- トースト通知 -->
-  <div id="simple-toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-2xl transition-all duration-300 opacity-0 pointer-events-none z-50">
-    メッセージ
-  </div>
 
   <script>
-    // 効果音エンジン (Web Audio API: 外部URL不使用で即応)
+    // Web Audio API による効果音エンジン（外部音声ファイル不要）
     const SoundEffects = {
       ctx: null,
       init() {
@@ -431,7 +287,7 @@
           osc.stop(now + i * 0.07 + 0.36);
         });
       },
-      // 扉が閉まる音「パタン」
+      // 閉まる音「パタン」
       playClose() {
         this.init();
         if (!this.ctx) return;
@@ -470,7 +326,7 @@
       }
     };
 
-    // キャラクターリスト（絵文字、名前、鳴き声やリアクション）
+    // キャラクター定義
     const CHARACTERS = [
       { emoji: '🐶', name: 'いぬさん', soundText: 'わんわん！ばぁ！' },
       { emoji: '🐱', name: 'ねこさん', soundText: 'にゃ〜ん！ばぁ！' },
@@ -491,41 +347,17 @@
     let currentTheme = 'house'; // 'house' | 'grass' | 'curtain'
     let currentCharIndex = 0;
 
-    function switchView(viewId) {
-      SoundEffects.init();
-      ['view-top', 'view-menu', 'view-game'].forEach(id => {
-        const el = document.getElementById(id);
-        if (id === viewId) {
-          el.classList.remove('hidden');
-          el.classList.add('flex');
-        } else {
-          el.classList.add('hidden');
-          el.classList.remove('flex');
-        }
-      });
-      window.scrollTo(0, 0);
-    }
-
-    function startGame(gameType) {
-      if (gameType === 'door') {
-        switchView('view-game');
-        resetDoor(false);
+    // もどるボタン処理
+    function handleBack() {
+      if (window.history.length > 1) {
+        window.history.back();
       } else {
-        showSimpleToast('「ぽんぽんタッチ」も じゅんびちゅうだよ！');
+        // 戻る履歴がない場合のフォールバック
+        window.location.href = './index.html';
       }
     }
 
-    function showSimpleToast(msg) {
-      const toast = document.getElementById('simple-toast');
-      toast.innerText = msg;
-      toast.classList.remove('opacity-0');
-      toast.classList.add('opacity-100');
-      setTimeout(() => {
-        toast.classList.remove('opacity-100');
-        toast.classList.add('opacity-0');
-      }, 2200);
-    }
-
+    // テーマ切り替え
     function changeTheme(theme) {
       if (isOpen) {
         resetDoor(false);
@@ -551,6 +383,7 @@
       SoundEffects.playKnock();
     }
 
+    // ガイドテキスト更新
     function updateGuideText() {
       const guide = document.getElementById('guide-message');
       const hint = document.getElementById('hint-action-text');
@@ -570,15 +403,16 @@
       }
     }
 
+    // ステージクリック時の処理
     function handleStageClick(event) {
       if (!isOpen) {
-        openDoor(event);
+        openDoor();
       } else {
-        // 開いているときにタップしたらキャラクターが喜んでピョンと跳ねて次のキャラクターへ
+        // 開いているときにタッチすると飛び跳ねて次のお友達へ
         SoundEffects.playSparkle();
         const charIcon = document.getElementById('char-icon');
         charIcon.classList.remove('animate-pop');
-        void charIcon.offsetWidth;
+        void charIcon.offsetWidth; // リフロー強制
         charIcon.classList.add('animate-pop');
 
         const clickX = event.clientX || window.innerWidth / 2;
@@ -587,22 +421,23 @@
 
         setTimeout(() => {
           resetOrNextDoor();
-        }, 550);
+        }, 500);
       }
     }
 
-    function openDoor(event) {
+    // 扉を開く
+    function openDoor() {
       if (isOpen) return;
       isOpen = true;
 
-      // 効果音「コンコン」からの「ばぁ〜！」
+      // 効果音「コンコン」→「ばぁ〜！」
       SoundEffects.playKnock();
       setTimeout(() => {
         SoundEffects.playPeekaboo();
         SoundEffects.playSparkle();
       }, 180);
 
-      // キャラクター抽選（直前と被らないように選出）
+      // キャラクター抽選（前回と重複しない）
       let nextIndex;
       do {
         nextIndex = Math.floor(Math.random() * CHARACTERS.length);
@@ -618,7 +453,7 @@
       charBubble.innerText = char.soundText;
       charName.innerText = char.name;
 
-      // アニメーション実行
+      // 各テーマのアニメーションクラス付与
       if (currentTheme === 'house') {
         document.getElementById('door-l').classList.add('door-open-left');
         document.getElementById('door-r').classList.add('door-open-right');
@@ -630,12 +465,12 @@
         document.getElementById('curtain-r').classList.add('curtain-open-right');
       }
 
-      // 中身の飛び出し演出（少し扉が開いたタイミングに合わせてダイナミックに登場）
+      // 中身の飛び出し演出
       setTimeout(() => {
         charIcon.classList.remove('opacity-0', 'scale-50');
         charIcon.classList.add('opacity-100');
         charIcon.classList.remove('animate-pop');
-        void charIcon.offsetWidth; // リフロー
+        void charIcon.offsetWidth;
         charIcon.classList.add('animate-pop');
 
         charBubble.classList.remove('opacity-0');
@@ -644,17 +479,15 @@
         charName.classList.add('opacity-100');
       }, 120);
 
-      // パーティクル発生
+      // キラキラパーティクル
       const rect = document.getElementById('secret-content').getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      spawnParticles(centerX, centerY);
+      spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
 
-      // UI表示更新
       updateGuideText();
       document.getElementById('btn-label').innerText = 'つぎの おともだち！🚪';
     }
 
+    // 扉を閉じる
     function resetDoor(playSound = true) {
       if (!isOpen) return;
       isOpen = false;
@@ -663,17 +496,15 @@
         SoundEffects.playClose();
       }
 
-      // ドアを閉じる
+      // ドア・仕掛けを元に戻す
       document.getElementById('door-l').classList.remove('door-open-left');
       document.getElementById('door-r').classList.remove('door-open-right');
-
       document.getElementById('grass-l').classList.remove('grass-open-left');
       document.getElementById('grass-r').classList.remove('grass-open-right');
-
       document.getElementById('curtain-l').classList.remove('curtain-open-left');
       document.getElementById('curtain-r').classList.remove('curtain-open-right');
 
-      // キャラクタを非表示化
+      // キャラクターを隠す
       const charIcon = document.getElementById('char-icon');
       charIcon.classList.remove('animate-pop', 'opacity-100');
       charIcon.classList.add('opacity-0', 'scale-50');
@@ -687,6 +518,7 @@
       document.getElementById('btn-label').innerText = 'もう１かい あける！';
     }
 
+    // 下部ボタンからの制御
     function resetOrNextDoor(e) {
       if (e) e.stopPropagation();
       if (isOpen) {
@@ -696,6 +528,7 @@
       }
     }
 
+    // 紙吹雪・星のパーティクル演出
     function spawnParticles(x, y) {
       const symbols = ['⭐', '✨', '🌸', '💛', '🎉', '🌟'];
       const count = 14;
@@ -723,9 +556,8 @@
       }
     }
 
-    // 初期化
+    // 初期化（ユーザーの最初の操作でWeb Audio APIを解除）
     window.addEventListener('DOMContentLoaded', () => {
-      // ユーザーの最初のタッチでオーディオコンテキストをアクティブ化
       const unlockAudio = () => {
         SoundEffects.init();
         document.removeEventListener('pointerdown', unlockAudio);
