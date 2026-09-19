@@ -61,14 +61,14 @@
     <!-- ゲーム選択カードリスト -->
     <div class="w-full flex flex-col gap-4">
 
-      <!-- 1. いないいないばぁ！扉 -->
-      <button onclick="openGame('door', 'door.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-amber-300 hover:border-amber-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
+      <!-- 1. いないいないばぁ -->
+      <button onclick="openGame('door', 'game2.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-amber-300 hover:border-amber-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-100 to-amber-200 flex items-center justify-center text-3xl shadow-inner border border-amber-200/60 shrink-0">
           🚪
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
-            <h2 class="text-lg font-black text-gray-800 group-hover:text-amber-600 transition truncate">いないいないばぁ！扉</h2>
+            <h2 class="text-lg font-black text-gray-800 group-hover:text-amber-600 transition truncate">いないいないばぁ</h2>
             <span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-black">にんき</span>
           </div>
           <p class="text-xs text-gray-500 font-medium mt-1">タッチで とびらが パッと ひらくよ！</p>
@@ -76,14 +76,14 @@
         <div class="text-amber-400 text-xl font-bold pr-1 group-hover:translate-x-1 transition-transform shrink-0">➔</div>
       </button>
 
-      <!-- 2. ぽんぽん風船割り -->
-      <button onclick="openGame('balloon', 'balloon.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-sky-300 hover:border-sky-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
+      <!-- 2. ぽんぽんふうせんわり -->
+      <button onclick="openGame('balloon', 'game3.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-sky-300 hover:border-sky-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-100 to-pink-100 flex items-center justify-center text-3xl shadow-inner border border-sky-200/60 shrink-0">
           🎈
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
-            <h2 class="text-lg font-black text-gray-800 group-hover:text-sky-600 transition truncate">ぽんぽん風船割り</h2>
+            <h2 class="text-lg font-black text-gray-800 group-hover:text-sky-600 transition truncate">ぽんぽんふうせんわり</h2>
             <span class="bg-sky-100 text-sky-600 text-[10px] px-2 py-0.5 rounded-full font-black">にんき</span>
           </div>
           <p class="text-xs text-gray-500 font-medium mt-1">タッチで ふうせんが パチンッ！とはじけるよ！</p>
@@ -91,14 +91,14 @@
         <div class="text-sky-400 text-xl font-bold pr-1 group-hover:translate-x-1 transition-transform shrink-0">➔</div>
       </button>
 
-      <!-- 3. もぐもぐご飯 -->
-      <button onclick="openGame('eat', 'eat.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-emerald-300 hover:border-emerald-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
+      <!-- 3. もぐもぐごはん -->
+      <button onclick="openGame('eat', 'game4.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-emerald-300 hover:border-emerald-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-100 to-amber-100 flex items-center justify-center text-3xl shadow-inner border border-emerald-200/60 shrink-0">
           🍙
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
-            <h2 class="text-lg font-black text-gray-800 group-hover:text-emerald-600 transition truncate">もぐもぐご飯</h2>
+            <h2 class="text-lg font-black text-gray-800 group-hover:text-emerald-600 transition truncate">もぐもぐごはん</h2>
             <span class="bg-emerald-100 text-emerald-600 text-[10px] px-2 py-0.5 rounded-full font-black">おすすめ</span>
           </div>
           <p class="text-xs text-gray-500 font-medium mt-1">タッチでおくちが パクパク！ごはんをたべるよ！</p>
@@ -106,22 +106,31 @@
         <div class="text-emerald-400 text-xl font-bold pr-1 group-hover:translate-x-1 transition-transform shrink-0">➔</div>
       </button>
 
-      <!-- 4. ぽんぽんタッチ（準備中） -->
-      <button onclick="showSimpleToast('「ぽんぽんタッチ」は じゅんびちゅうだよ！🌟')" class="w-full text-left p-4 rounded-3xl bg-white border border-pink-100 hover:border-pink-200 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group">
-        <div class="w-16 h-16 rounded-2xl bg-[#FFF1F2] flex items-center justify-center text-3xl shadow-inner shrink-0">
+      <!-- 4. ぽんぽんたっち -->
+      <button onclick="openGame('touch', 'game1.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-pink-300 hover:border-pink-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-100 to-amber-100 flex items-center justify-center text-3xl shadow-inner border border-pink-200/60 shrink-0">
           ⭐
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
-            <h2 class="text-lg font-black text-gray-800 truncate">ぽんぽんタッチ</h2>
-            <span class="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full font-bold">じゅんびちゅう</span>
+            <h2 class="text-lg font-black text-gray-800 group-hover:text-pink-600 transition truncate">ぽんぽんたっち</h2>
+            <span class="bg-pink-100 text-pink-600 text-[10px] px-2 py-0.5 rounded-full font-black">あそべるよ</span>
           </div>
           <p class="text-xs text-gray-500 font-medium mt-1">がめんを タップして おとをならそう！</p>
         </div>
-        <div class="text-pink-300 text-xl font-bold pr-1 shrink-0">➔</div>
+        <div class="text-pink-400 text-xl font-bold pr-1 group-hover:translate-x-1 transition-transform shrink-0">➔</div>
       </button>
 
     </div>
+
+    <!-- おうちの方向け安心インフォメーション -->
+    <div class="w-full mt-8 p-4 rounded-2xl bg-amber-50/70 border border-amber-200/70 text-center">
+      <p class="text-xs text-amber-800 font-bold flex items-center justify-center gap-1">
+        <span>🔒</span>
+        <span>完全無料・広告誤タップなし・安心設計</span>
+      </p>
+    </div>
+
   </main>
 
   <!-- トースト通知 -->
