@@ -4,108 +4,206 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>2さいのゲーム - とうちゃんのゲームラボ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
       user-select: none;
       -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      background-color: #FFFDF7;
     }
-    body {
-      background: #fff8f8;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 16px;
+
+    /* ぷるぷるアニメーション */
+    @keyframes wobble {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-3deg) scale(1.02); }
+      75% { transform: rotate(3deg) scale(1.02); }
     }
-    header {
-      width: 100%;
-      max-width: 360px;
-      margin-bottom: 24px;
+    .animate-wobble {
+      animation: wobble 2.4s infinite ease-in-out;
     }
-    .back-btn {
-      display: inline-block;
-      text-decoration: none;
-      background: #fff;
-      color: #666;
-      font-size: 0.9rem;
-      padding: 6px 14px;
-      border-radius: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-      margin-bottom: 12px;
+
+    /* ふわっと浮き上がるアニメーション */
+    @keyframes cardFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
     }
-    h1 {
-      font-size: 1.5rem;
-      color: #d63031;
-    }
-    p {
-      font-size: 0.9rem;
-      color: #777;
-      margin-top: 4px;
-    }
-    .game-list {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 100%;
-      max-width: 360px;
-    }
-    .game-card {
-      display: flex;
-      align-items: center;
-      background: #fff;
-      text-decoration: none;
-      padding: 16px;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(255,154,158,0.25);
-      border: 2px solid #ffd1d7;
-      transition: transform 0.1s ease;
-    }
-    .game-card:active {
-      transform: scale(0.97);
-    }
-    .game-icon {
-      font-size: 2.5rem;
-      margin-right: 16px;
-      background: #ffebee;
-      width: 60px;
-      height: 60px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .game-info h2 {
-      font-size: 1.2rem;
-      color: #333;
-    }
-    .game-info p {
-      font-size: 0.85rem;
-      color: #666;
-      margin-top: 2px;
+    .hover-float:hover {
+      animation: cardFloat 1.2s ease-in-out infinite;
     }
   </style>
 </head>
-<body>
 
-  <header>
-    <a href="../" class="back-btn">⬅ トップへもどる</a>
-    <h1>🐣 2さいのゲーム</h1>
-    <p>すきな あそびを えらんでね！</p>
-  </header>
+<body class="min-h-screen flex flex-col items-center justify-start text-gray-800 antialiased p-4 sm:p-6 select-none overflow-x-hidden">
 
-  <main class="game-list">
-    <a href="game1.html" class="game-card">
-      <div class="game-icon">⭐</div>
-      <div class="game-info">
-        <h2>ぽんぽんタッチ</h2>
-        <p>がめんを タップして おとをならそう！</p>
-      </div>
-    </a>
+  <!-- メインコンテナ -->
+  <main class="w-full max-w-sm sm:max-w-md flex flex-col items-start py-2">
+    
+    <!-- トップへもどるボタン -->
+    <button onclick="handleBackToTop()" class="px-4 py-2 bg-white rounded-full text-gray-700 text-sm font-bold shadow-md hover:bg-gray-50 active:scale-95 transition flex items-center gap-1.5 border border-gray-100 mb-5">
+      <span>⬅</span>
+      <span>トップへもどる</span>
+    </button>
+
+    <!-- タイトル見出し部 -->
+    <div class="flex items-center gap-2 mb-1">
+      <span class="text-3xl animate-bounce">🐣</span>
+      <h1 class="text-2xl sm:text-3xl font-black text-[#E11D48] tracking-tight">2さいのゲーム</h1>
+    </div>
+    <p class="text-gray-500 font-bold text-sm mb-6 pl-0.5">すきな あそびを えらんでね！</p>
+
+    <!-- ゲーム選択カードリスト -->
+    <div class="w-full flex flex-col gap-4">
+
+      <!-- 1. いないいないばぁ！扉 -->
+      <button onclick="openGame('door', 'door.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-amber-300 hover:border-amber-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-100 to-amber-200 flex items-center justify-center text-3xl shadow-inner border border-amber-200/60 shrink-0">
+          🚪
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h2 class="text-lg font-black text-gray-800 group-hover:text-amber-600 transition truncate">いないいないばぁ！扉</h2>
+            <span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-black">にんき</span>
+          </div>
+          <p class="text-xs text-gray-500 font-medium mt-1">タッチで とびらが パッと ひらくよ！</p>
+        </div>
+        <div class="text-amber-400 text-xl font-bold pr-1 group-hover:translate-x-1 transition-transform shrink-0">➔</div>
+      </button>
+
+      <!-- 2. ぽんぽん風船割り -->
+      <button onclick="openGame('balloon', 'balloon.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-sky-300 hover:border-sky-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-100 to-pink-100 flex items-center justify-center text-3xl shadow-inner border border-sky-200/60 shrink-0">
+          🎈
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h2 class="text-lg font-black text-gray-800 group-hover:text-sky-600 transition truncate">ぽんぽん風船割り</h2>
+            <span class="bg-sky-100 text-sky-600 text-[10px] px-2 py-0.5 rounded-full font-black">にんき</span>
+          </div>
+          <p class="text-xs text-gray-500 font-medium mt-1">タッチで ふうせんが パチンッ！とはじけるよ！</p>
+        </div>
+        <div class="text-sky-400 text-xl font-bold pr-1 group-hover:translate-x-1 transition-transform shrink-0">➔</div>
+      </button>
+
+      <!-- 3. もぐもぐご飯 -->
+      <button onclick="openGame('eat', 'eat.html')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-emerald-300 hover:border-emerald-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group hover-float">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-100 to-amber-100 flex items-center justify-center text-3xl shadow-inner border border-emerald-200/60 shrink-0">
+          🍙
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h2 class="text-lg font-black text-gray-800 group-hover:text-emerald-600 transition truncate">もぐもぐご飯</h2>
+            <span class="bg-emerald-100 text-emerald-600 text-[10px] px-2 py-0.5 rounded-full font-black">おすすめ</span>
+          </div>
+          <p class="text-xs text-gray-500 font-medium mt-1">タッチでおくちが パクパク！ごはんをたべるよ！</p>
+        </div>
+        <div class="text-emerald-400 text-xl font-bold pr-1 group-hover:translate-x-1 transition-transform shrink-0">➔</div>
+      </button>
+
+      <!-- 4. ぽんぽんタッチ（準備中） -->
+      <button onclick="showSimpleToast('「ぽんぽんタッチ」は じゅんびちゅうだよ！🌟')" class="w-full text-left p-4 rounded-3xl bg-white border border-pink-100 hover:border-pink-200 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group">
+        <div class="w-16 h-16 rounded-2xl bg-[#FFF1F2] flex items-center justify-center text-3xl shadow-inner shrink-0">
+          ⭐
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h2 class="text-lg font-black text-gray-800 truncate">ぽんぽんタッチ</h2>
+            <span class="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full font-bold">じゅんびちゅう</span>
+          </div>
+          <p class="text-xs text-gray-500 font-medium mt-1">がめんを タップして おとをならそう！</p>
+        </div>
+        <div class="text-pink-300 text-xl font-bold pr-1 shrink-0">➔</div>
+      </button>
+
+    </div>
   </main>
 
+  <!-- トースト通知 -->
+  <div id="simple-toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-2xl transition-all duration-300 opacity-0 pointer-events-none z-50 whitespace-nowrap">
+    メッセージ
+  </div>
+
+  <script>
+    // Web Audio APIによる軽快なタップ音
+    const SoundEffects = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      playTap() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      }
+    };
+
+    // トップへもどる処理
+    function handleBackToTop() {
+      SoundEffects.playTap();
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = './index.html';
+      }
+    }
+
+    // ゲーム遷移処理（各ゲームのファイル名へ遷移）
+    function openGame(gameType, targetFile) {
+      SoundEffects.playTap();
+      // 少しタップ演出を感じてからスムーズにページ移動
+      setTimeout(() => {
+        window.location.href = targetFile;
+      }, 120);
+    }
+
+    // トースト通知表示
+    function showSimpleToast(msg) {
+      SoundEffects.playTap();
+      const toast = document.getElementById('simple-toast');
+      toast.innerText = msg;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2000);
+    }
+
+    // ユーザー操作時にオーディオ解放
+    window.addEventListener('DOMContentLoaded', () => {
+      const unlockAudio = () => {
+        SoundEffects.init();
+        document.removeEventListener('pointerdown', unlockAudio);
+      };
+      document.addEventListener('pointerdown', unlockAudio);
+    });
+  </script>
 </body>
 </html>
