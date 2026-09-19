@@ -3,58 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>とうちゃんのゲームラボ - がめんを ぽん！</title>
+  <title>とうちゃんのゲームラボ - ぽんぽんたっち</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+
   <style>
     * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
     }
     body {
-      background: #fdfaf6;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      font-family: sans-serif;
-      overflow: hidden;
+      font-family: 'Zen Maru Gothic', sans-serif;
       touch-action: manipulation;
+      background-color: #FFFDF7;
     }
-    h1 {
-      color: #333;
-      font-size: 1.3rem;
-      margin-bottom: 16px;
-    }
-    .touch-area {
-      width: 85vw;
-      height: 65vh;
-      max-width: 450px;
-      background: #ffffff;
-      border: 4px dashed #ddd;
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      color: #aaa;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-    }
+
+    /* アイコンポップアニメーション */
     .star {
       position: absolute;
-      font-size: 3.5rem;
+      font-size: 3.8rem;
       pointer-events: none;
       transform-origin: center center;
       --target-scale: 1.5;
       animation: pop 0.65s ease-out forwards;
       line-height: 1;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.12));
     }
-    /* タップ中心からCSS変数で指定したサイズ(--target-scale)まで拡大 */
+
     @keyframes pop {
       0% {
         transform: translate(-50%, -50%) scale(0.2);
@@ -68,28 +47,143 @@
         opacity: 0;
       }
     }
+
+    /* ぷるぷるアニメーション */
+    @keyframes wobble {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-3deg) scale(1.02); }
+      75% { transform: rotate(3deg) scale(1.02); }
+    }
+    .animate-wobble {
+      animation: wobble 2.4s infinite ease-in-out;
+    }
   </style>
 </head>
-<body>
 
-  <h1>🌟 がめんを ぽん！ してみてね 🌟</h1>
-  <div class="touch-area" id="stage">ここを タップ！</div>
+<body class="min-h-screen flex flex-col items-center justify-start text-gray-800 antialiased p-3 sm:p-5 select-none overflow-x-hidden">
+
+  <main class="w-full max-w-sm sm:max-w-md flex flex-col items-center py-2 h-[94vh] max-h-[850px] justify-between">
+
+    <!-- ヘッダー操作部（いないいないばぁと同じ戻るボタン） -->
+    <header class="w-full flex items-center justify-between px-1 mb-2">
+      <button onclick="handleBack()" class="px-3.5 py-1.5 bg-white rounded-full text-gray-700 text-xs sm:text-sm font-bold shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition flex items-center gap-1.5">
+        <span>⬅</span>
+        <span>もどる</span>
+      </button>
+
+      <!-- バッジ表示 -->
+      <div class="inline-flex items-center gap-1 px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-black border border-pink-200">
+        <span>⭐</span>
+        <span>ぽんぽんたっち</span>
+      </div>
+    </header>
+
+    <!-- ガイドメッセージ -->
+    <div class="text-center my-1">
+      <h1 class="text-sm sm:text-base font-black text-pink-700 tracking-wide flex items-center justify-center gap-1.5">
+        <span class="animate-bounce">🌟</span>
+        <span>がめんを ぽん！ してみてね</span>
+        <span class="animate-bounce">🌟</span>
+      </h1>
+    </div>
+
+    <!-- ゲームメイン枠（点線カードUI） -->
+    <div id="stage" class="relative w-full flex-1 bg-white rounded-3xl border-4 border-dashed border-pink-200 shadow-[0_15px_30px_-5px_rgba(244,114,182,0.18)] flex flex-col items-center justify-center p-3 overflow-hidden cursor-pointer select-none active:scale-[0.99] transition-transform">
+
+      <!-- 背景デコレーション -->
+      <div class="absolute inset-0 pointer-events-none opacity-30 flex flex-col justify-between p-4">
+        <div class="flex justify-between text-2xl">
+          <span class="animate-pulse">☁️</span>
+          <span class="animate-pulse" style="animation-delay: 1s;">✨</span>
+        </div>
+        <div class="flex justify-between text-xl">
+          <span>🌸</span>
+          <span>🎈</span>
+        </div>
+      </div>
+
+      <!-- 中央ヒント表示 -->
+      <div id="stage-guide" class="flex flex-col items-center justify-center pointer-events-none">
+        <span class="text-5xl sm:text-6xl mb-3 animate-bounce">👆</span>
+        <p class="text-gray-400 font-bold text-base sm:text-lg">ここを タップ！</p>
+      </div>
+
+      <!-- 下部ヒントチップ -->
+      <div class="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-pink-50 border border-pink-200 text-pink-700 text-xs font-bold animate-wobble flex items-center gap-1.5 shadow-sm pointer-events-none whitespace-nowrap">
+        <span>⭐</span>
+        <span>さわると いろんなものが とびだすよ！</span>
+      </div>
+    </div>
+
+    <div class="w-full flex justify-center py-2">
+      <div class="text-[11px] text-gray-400 font-bold text-center">
+        とうちゃんのゲームラボ 🐣 完全無料・安心設計
+      </div>
+    </div>
+
+  </main>
 
   <script>
-    const stage = document.getElementById('stage');
-    const items = ['⭐', '🎈', '🚗', '🐱', '🍎', '🌈', '🍓', '🚀', '🐥', '👑'];
+    // 戻るボタン処理
+    function handleBack() {
+      playTapSound();
+      setTimeout(() => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = './index.html';
+        }
+      }, 80);
+    }
 
-    let audioCtx = null;
-    function playPop(isBig = false) {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') {
+    // ボタン用軽快タップ音
+    function playTapSound() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    }
+
+    const stage = document.getElementById('stage');
+    const stageGuide = document.getElementById('stage-guide');
+    const items = ['⭐', '🎈', '🚗', '🐱', '🍎', '🌈', '🍓', '🚀', '🐥', '👑', '🐶', '🐼', '🌻', '🍦'];
+
+    let audioCtx = null;
+
+    // ポンッ！という効果音（特大サイズ時は深みのある太い音）
+    function playPop(isBig = false) {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (!audioCtx) return;
+
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
 
-      // 特大サイズのときは少し低めのポンッ！という太い音、通常はかわいい高音
       const baseFreq = isBig ? (340 + Math.random() * 100) : (520 + Math.random() * 250);
       osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
       gain.gain.setValueAtTime(isBig ? 0.35 : 0.25, audioCtx.currentTime);
@@ -101,9 +195,14 @@
       osc.stop(audioCtx.currentTime + (isBig ? 0.16 : 0.12));
     }
 
+    // タッチ＆クリックでアイコン生成
     stage.addEventListener('pointerdown', (e) => {
+      // 最初のタップで中央ヒントをフェードアウト
+      if (stageGuide && !stageGuide.classList.contains('opacity-20')) {
+        stageGuide.classList.add('opacity-20', 'transition-opacity');
+      }
+
       // 1.2倍 〜 3.0倍の間でランダムな拡大率を決定
-      // （約20%の確率で2.4倍以上の「ビッグアイコン」が出現！）
       const randomScale = (Math.random() * 1.8 + 1.2).toFixed(2);
       const isBig = randomScale >= 2.4;
 
@@ -113,16 +212,26 @@
       mark.className = 'star';
       mark.textContent = items[Math.floor(Math.random() * items.length)];
 
-      // CSS変数としてランダムな拡大率を設定
       mark.style.setProperty('--target-scale', randomScale);
 
       const rect = stage.getBoundingClientRect();
-      // 指の触れた真ん中（中心）に配置
       mark.style.left = (e.clientX - rect.left) + 'px';
       mark.style.top = (e.clientY - rect.top) + 'px';
 
       stage.appendChild(mark);
       setTimeout(() => mark.remove(), 650);
+    });
+
+    // ユーザー操作時にオーディオ解放
+    window.addEventListener('DOMContentLoaded', () => {
+      const unlockAudio = () => {
+        if (!audioCtx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) audioCtx = new AudioContext();
+        }
+        document.removeEventListener('pointerdown', unlockAudio);
+      };
+      document.addEventListener('pointerdown', unlockAudio);
     });
   </script>
 </body>
