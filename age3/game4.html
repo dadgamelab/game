@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>とうちゃんのゲームラボ - かげあわせクイズ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      touch-action: manipulation;
+      background-color: #FFFDF7;
+    }
+
+    /* シルエット（真っ黒な影）化フィルター：OS固有の絵文字カラーを完全無効化 */
+    .silhouette-shadow {
+      filter: grayscale(100%) brightness(0) contrast(1000%);
+      -webkit-filter: grayscale(100%) brightness(0) contrast(1000%);
+      opacity: 0.88;
+      transition: filter 0.35s ease, opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 正解時に影がパッと本来の鮮やかな色に戻る演出 */
+    .silhouette-reveal {
+      filter: none !important;
+      -webkit-filter: none !important;
+      opacity: 1 !important;
+      transform: scale(1.15);
+    }
+
+    /* ぷるぷるアニメーション */
+    @keyframes wobble {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-3deg) scale(1.02); }
+      75% { transform: rotate(3deg) scale(1.02); }
+    }
+    .animate-wobble {
+      animation: wobble 2.4s infinite ease-in-out;
+    }
+
+    /* 間違えたときのブルブルシェイク */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px) rotate(-3deg); }
+      40% { transform: translateX(8px) rotate(3deg); }
+      60% { transform: translateX(-6px) rotate(-2deg); }
+      80% { transform: translateX(6px) rotate(2deg); }
+    }
+    .animate-shake {
+      animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    /* 正解カードのピョンピョン跳ね */
+    @keyframes correctBounce {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.15) translateY(-12px); }
+      65% { transform: scale(0.95) translateY(4px); }
+      100% { transform: scale(1.05) translateY(-4px); }
+    }
+    .animate-correct {
+      animation: correctBounce 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* はなまるポップアップ */
+    @keyframes hanamaruPop {
+      0% { transform: translate(-50%, -50%) scale(0.2) rotate(-30deg); opacity: 0; }
+      60% { transform: translate(-50%, -50%) scale(1.15) rotate(10deg); opacity: 1; }
+      80% { transform: translate(-50%, -50%) scale(0.95) rotate(-5deg); }
+      100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+    }
+    .animate-hanamaru {
+      animation: hanamaruPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* キラキラ星パーティクル */
+    .particle {
+      position: absolute;
+      pointer-events: none;
+      animation: popParticle 0.85s ease-out forwards;
+      z-index: 50;
+    }
+    @keyframes popParticle {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-start text-gray-800 antialiased p-3 sm:p-5 select-none overflow-x-hidden">
+
+  <main class="w-full max-w-sm sm:max-w-md flex flex-col items-center py-2 h-[94vh] max-h-[850px] justify-between">
+
+    <!-- ヘッダー部（統一された戻るボタン＆スコア表示） -->
+    <header class="w-full flex items-center justify-between px-1 mb-2">
+      <!-- 統一された戻るボタン -->
+      <button onclick="handleBack()" class="px-3.5 py-1.5 bg-white rounded-full text-gray-700 text-xs sm:text-sm font-bold shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition flex items-center gap-1.5">
+        <span>⬅</span>
+        <span>もどる</span>
+      </button>
+
+      <!-- 3さい向けスカイブルーバッジ＆スコアスター -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-0.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs font-black text-amber-700 shadow-sm">
+          <span>⭐</span>
+          <span id="star-count">0</span>
+        </div>
+        <div class="inline-flex items-center gap-1 px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-black border border-sky-200">
+          <span>👥</span>
+          <span>3さいのクイズ</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ガイド・問題見出し -->
+    <div class="text-center my-1 w-full px-2">
+      <div class="inline-block px-4 py-1.5 rounded-2xl bg-sky-50 border border-sky-200 text-sky-900 shadow-sm mb-1">
+        <p class="text-sm sm:text-base font-black tracking-wide flex items-center justify-center gap-1.5">
+          <span class="animate-bounce">👀</span>
+          <span id="question-text">この かげは だれかな？</span>
+          <span class="animate-bounce">🔍</span>
+        </p>
+      </div>
+      <p id="sub-guide" class="text-xs text-gray-500 font-bold">ぴったりの え を えらんでね！</p>
+    </div>
+
+    <!-- ゲームメイン枠（点線カードUI） -->
+    <div id="stage" class="relative w-full flex-1 bg-white rounded-3xl border-4 border-dashed border-sky-200 shadow-[0_15px_30px_-5px_rgba(56,189,248,0.18)] flex flex-col items-center justify-between p-3 sm:p-4 overflow-hidden select-none">
+
+      <!-- 背景デコレーション -->
+      <div class="absolute inset-0 pointer-events-none opacity-25 flex flex-col justify-between p-4">
+        <div class="flex justify-between text-2xl">
+          <span class="animate-pulse">☁️</span>
+          <span class="animate-pulse" style="animation-delay: 1s;">✨</span>
+        </div>
+        <div class="flex justify-between text-xl">
+          <span>🎈</span>
+          <span>🌈</span>
+        </div>
+      </div>
+
+      <!-- シルエット（影）表示ステージ -->
+      <div class="relative z-10 flex flex-col items-center justify-center my-auto w-full">
+        <!-- 影が投影されるスポットライト台座 -->
+        <div class="relative w-36 h-36 sm:w-44 sm:h-44 rounded-3xl bg-gradient-to-b from-sky-50 to-indigo-50/60 border-2 border-sky-200 shadow-inner flex flex-col items-center justify-center">
+          
+          <!-- まん丸ライト風背景 -->
+          <div class="absolute w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-white/80 border border-sky-100/80 shadow-sm pointer-events-none"></div>
+
+          <!-- シルエット絵文字本体（filter: brightness(0)） -->
+          <div id="shadow-target" class="silhouette-shadow text-7xl sm:text-8xl select-none relative z-10 drop-shadow-md">
+            🐘
+          </div>
+
+          <!-- 正解時に現れる名前バッジ -->
+          <div id="target-revealed-name" class="hidden absolute -bottom-3 px-3.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-black shadow-md border border-white animate-bounce whitespace-nowrap z-20">
+            ぞうさん
+          </div>
+        </div>
+
+        <span class="text-[11px] font-bold text-sky-600/80 mt-2 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-100">
+          くろい かげの かたちを よくみてね
+        </span>
+      </div>
+
+      <!-- 3択カード選択エリア（横並び3列） -->
+      <div class="w-full relative z-10 mb-6">
+        <div id="choices-grid" class="w-full max-w-[340px] mx-auto grid grid-cols-3 gap-2.5 sm:gap-3 items-center justify-center">
+          <!-- JSで動的に3枚の選択肢カードを生成 -->
+        </div>
+      </div>
+
+      <!-- はなまる・正解ポップアップ（非表示オーバーレイ） -->
+      <div id="success-overlay" class="hidden absolute top-1/2 left-1/2 pointer-events-none z-40 flex flex-col items-center justify-center">
+        <div class="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-white/95 border-4 border-rose-400 shadow-2xl flex items-center justify-center animate-hanamaru">
+          <span class="text-7xl sm:text-8xl select-none">💮</span>
+        </div>
+        <div class="mt-2 px-5 py-1.5 rounded-full bg-rose-500 text-white font-black text-lg shadow-lg border-2 border-white animate-bounce whitespace-nowrap">
+          せいかい！あたり〜！🎉
+        </div>
+      </div>
+
+      <!-- 不正解時のプチ吹き出しトースト -->
+      <div id="wrong-bubble" class="hidden absolute top-4 px-4 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-800 text-xs sm:text-sm font-black shadow-md z-30 transition-all flex items-center gap-1 animate-wobble">
+        <span>💭</span>
+        <span>おしい！かたちの ちがいを みてみてね</span>
+      </div>
+
+      <!-- 下部ヒントチップ（見切れない最適サイズ） -->
+      <div class="absolute bottom-2.5 left-1/2 -translate-x-1/2 max-w-[90%] px-3.5 py-1 rounded-full bg-sky-50/95 border border-sky-200 text-sky-700 text-[11px] sm:text-xs font-bold animate-wobble flex items-center justify-center gap-1 shadow-sm pointer-events-none whitespace-nowrap z-10">
+        <span>💡</span>
+        <span>おなじ かたちの え を タップしよう！</span>
+      </div>
+    </div>
+
+    <!-- 下部スキップ/つぎへボタン -->
+    <div class="w-full flex flex-col items-center gap-1 py-1.5">
+      <button onclick="skipToNext()" class="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 active:scale-95 text-white font-black text-sm sm:text-base shadow-md transition flex items-center justify-center gap-2">
+        <span>🔄</span>
+        <span>つぎの もんだいへ</span>
+      </button>
+
+      <!-- コピーライト -->
+      <div class="text-[11px] text-gray-400 font-bold text-center mt-1">
+        とうちゃんのゲームラボ 🐣 完全無料・広告なし
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Web Audio APIによる効果音エンジン（外部URL不使用・完全即応）
+    const SoundEffects = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      // ボタンタップ音
+      playTap() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      },
+      // 正解音（明るいピンポン音）
+      playCorrect() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        const osc1 = this.ctx.createOscillator();
+        const gain1 = this.ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(1046.50, now);
+        gain1.gain.setValueAtTime(0.32, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc1.connect(gain1);
+        gain1.connect(this.ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.28);
+
+        const osc2 = this.ctx.createOscillator();
+        const gain2 = this.ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1318.51, now + 0.15);
+        gain2.gain.setValueAtTime(0.35, now + 0.15);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc2.connect(gain2);
+        gain2.connect(this.ctx.destination);
+        osc2.start(now + 0.15);
+        osc2.stop(now + 0.52);
+      },
+      // 影がパッと解けるキラキラ音
+      playSparkle() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [783.99, 1046.50, 1318.51, 1567.98].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+          gain.gain.setValueAtTime(0.24, now + idx * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.32);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.06);
+          osc.stop(now + idx * 0.06 + 0.35);
+        });
+      },
+      // 不正解音（やさしいぽよん音）
+      playWrong() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(260, now);
+        osc.frequency.exponentialRampToValueAtTime(160, now + 0.18);
+
+        gain.gain.setValueAtTime(0.26, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+    };
+
+    // 戻るボタンの安全な遷移処理
+    function handleBack() {
+      SoundEffects.playTap();
+      setTimeout(() => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = './index.html';
+        }
+      }, 100);
+    }
+
+    // シルエットで特徴がわかりやすいアイテム（3歳児向け）
+    const SHADOW_ITEMS = [
+      { emoji: '🐘', name: 'ぞう' },
+      { emoji: '🐰', name: 'うさぎ' },
+      { emoji: '🦒', name: 'きりん' },
+      { emoji: '🚗', name: 'くるま' },
+      { emoji: '🍎', name: 'りんご' },
+      { emoji: '🐱', name: 'ねこ' },
+      { emoji: '🚀', name: 'ロケット' },
+      { emoji: '🦁', name: 'ライオン' },
+      { emoji: '🐟', name: 'さかな' },
+      { emoji: '🐸', name: 'かえる' },
+      { emoji: '🐼', name: 'パンダ' },
+      { emoji: '🐥', name: 'ひよこ' }
+    ];
+
+    let currentTarget = null;
+    let starScore = 0;
+    let isAnswering = false;
+
+    // 新しい問題を生成
+    function nextQuestion() {
+      isAnswering = false;
+      hideOverlays();
+
+      // ランダムに3つの選択肢を抽出し、その中から正解ターゲットを決定
+      const shuffled = [...SHADOW_ITEMS].sort(() => 0.5 - Math.random());
+      const choices = shuffled.slice(0, 3);
+      currentTarget = choices[Math.floor(Math.random() * choices.length)];
+
+      // 影ターゲットの初期化（真っ黒なシルエット状態へ）
+      const shadowEl = document.getElementById('shadow-target');
+      shadowEl.textContent = currentTarget.emoji;
+      shadowEl.className = 'silhouette-shadow text-7xl sm:text-8xl select-none relative z-10 drop-shadow-md';
+
+      const nameBadge = document.getElementById('target-revealed-name');
+      nameBadge.classList.add('hidden');
+      nameBadge.textContent = `${currentTarget.name}さん`;
+
+      // 3択カードの描画
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+
+      choices.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full aspect-[4/5] rounded-2xl bg-gradient-to-b from-white to-sky-50/50 border-3 border-sky-200 hover:border-sky-300 shadow-md active:scale-95 transition-all flex flex-col items-center justify-center p-1.5 group border-2 sm:border-3';
+        
+        btn.innerHTML = `
+          <span class="text-4xl sm:text-5xl drop-shadow-sm select-none group-active:scale-95 transition-transform">
+            ${item.emoji}
+          </span>
+          <span class="text-[11px] sm:text-xs font-black text-gray-700 mt-1 sm:mt-1.5 px-2 py-0.5 rounded-full bg-white/90 border border-sky-100 shadow-2xs whitespace-nowrap">
+            ${item.name}
+          </span>
+        `;
+
+        btn.addEventListener('pointerdown', (e) => handleChoice(item, btn));
+        grid.appendChild(btn);
+      });
+    }
+
+    // カードタップ時の判定
+    function handleChoice(item, btnEl) {
+      if (isAnswering) return;
+
+      if (item.emoji === currentTarget.emoji) {
+        // ========== 正解！ ==========
+        isAnswering = true;
+        SoundEffects.playCorrect();
+        SoundEffects.playSparkle();
+
+        // 影がパッと本来のカラーに変身！
+        const shadowEl = document.getElementById('shadow-target');
+        shadowEl.className = 'silhouette-reveal text-7xl sm:text-8xl select-none relative z-10 animate-bounce';
+
+        // 名前バッジ表示
+        const nameBadge = document.getElementById('target-revealed-name');
+        nameBadge.classList.remove('hidden');
+
+        // タップしたカードのハイライト
+        btnEl.classList.remove('border-sky-200');
+        btnEl.classList.add('border-emerald-400', 'bg-emerald-50', 'animate-correct', 'shadow-xl');
+
+        // 星スコア加算
+        starScore++;
+        document.getElementById('star-count').textContent = starScore;
+
+        // はなまるポップアップ表示
+        const overlay = document.getElementById('success-overlay');
+        overlay.classList.remove('hidden');
+
+        // パーティクル発生
+        const rect = btnEl.getBoundingClientRect();
+        spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        spawnParticles(window.innerWidth / 2, window.innerHeight / 2 - 40);
+
+        // 1.6秒後に次の問題へ
+        setTimeout(nextQuestion, 1600);
+
+      } else {
+        // ========== 不正解（ブルブル震える） ==========
+        SoundEffects.playWrong();
+
+        btnEl.classList.add('animate-shake', 'border-amber-300', 'bg-amber-50/60');
+        setTimeout(() => {
+          btnEl.classList.remove('animate-shake', 'border-amber-300', 'bg-amber-50/60');
+        }, 480);
+
+        const bubble = document.getElementById('wrong-bubble');
+        bubble.classList.remove('hidden');
+        setTimeout(() => bubble.classList.add('hidden'), 1300);
+      }
+    }
+
+    // スキップ処理
+    function skipToNext() {
+      SoundEffects.playTap();
+      nextQuestion();
+    }
+
+    // オーバーレイ・トーストの非表示
+    function hideOverlays() {
+      const overlay = document.getElementById('success-overlay');
+      if (overlay) overlay.classList.add('hidden');
+      const bubble = document.getElementById('wrong-bubble');
+      if (bubble) bubble.classList.add('hidden');
+    }
+
+    // キラキラ星パーティクル生成
+    function spawnParticles(x, y) {
+      const symbols = ['⭐', '✨', '🌟', '💮', '🎉', '💫'];
+      const count = 12;
+
+      for (let i = 0; i < count; i++) {
+        const particle = document.createElement('span');
+        particle.className = 'particle text-2xl';
+        particle.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+
+        const angle = (Math.PI * 2 / count) * i + (Math.random() * 0.4);
+        const distance = 55 + Math.random() * 65;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+
+        particle.style.setProperty('--tx', `${tx}px`);
+        particle.style.setProperty('--ty', `${ty}px`);
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 850);
+      }
+    }
+
+    // 初期化とオーディオ解放リスナー
+    window.addEventListener('DOMContentLoaded', () => {
+      nextQuestion();
+
+      const unlockAudio = () => {
+        SoundEffects.init();
+        document.removeEventListener('pointerdown', unlockAudio);
+      };
+      document.addEventListener('pointerdown', unlockAudio);
+    });
+  </script>
+</body>
+</html>
