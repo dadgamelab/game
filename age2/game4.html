@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>とうちゃんのゲームラボ - いないいないばぁ！扉</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      background-color: #FFFDF7;
+    }
+
+    /* 3D風テキストシャドウ */
+    .title-shadow-red { text-shadow: 0 4px 0 #ea580c; }
+    .title-shadow-orange { text-shadow: 0 4px 0 #c2410c; }
+    .title-shadow-yellow { text-shadow: 0 4px 0 #ca8a04; }
+    .title-shadow-green { text-shadow: 0 4px 0 #15803d; }
+    .title-shadow-blue { text-shadow: 0 4px 0 #1d4ed8; }
+    .title-shadow-purple { text-shadow: 0 4px 0 #6b21a8; }
+
+    /* 扉の3Dパースペクティブ */
+    .door-perspective {
+      perspective: 1200px;
+    }
+
+    .door-left, .door-right {
+      transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-style: preserve-3d;
+    }
+
+    .door-left {
+      transform-origin: left center;
+    }
+    .door-right {
+      transform-origin: right center;
+    }
+
+    .door-open-left {
+      transform: rotateY(-125deg);
+    }
+    .door-open-right {
+      transform: rotateY(125deg);
+    }
+
+    /* 草むらモードのアニメーション */
+    .grass-left {
+      transition: transform 0.6s cubic-bezier(0.34, 1.4, 0.64, 1);
+      transform-origin: bottom left;
+    }
+    .grass-right {
+      transition: transform 0.6s cubic-bezier(0.34, 1.4, 0.64, 1);
+      transform-origin: bottom right;
+    }
+    .grass-open-left {
+      transform: translateX(-80%) rotate(-25deg);
+    }
+    .grass-open-right {
+      transform: translateX(80%) rotate(25deg);
+    }
+
+    /* カーテンモードのアニメーション */
+    .curtain-left {
+      transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1);
+      transform-origin: left center;
+    }
+    .curtain-right {
+      transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1);
+      transform-origin: right center;
+    }
+    .curtain-open-left {
+      transform: scaleX(0.12);
+    }
+    .curtain-open-right {
+      transform: scaleX(0.12);
+    }
+
+    /* キャラクター飛び出しバウンド */
+    @keyframes popBounce {
+      0% { transform: scale(0.2) translateY(50px); opacity: 0; }
+      60% { transform: scale(1.15) translateY(-15px); opacity: 1; }
+      80% { transform: scale(0.95) translateY(5px); }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .animate-pop {
+      animation: popBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* ぷるぷるアニメーション */
+    @keyframes wobble {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-4deg) scale(1.02); }
+      75% { transform: rotate(4deg) scale(1.02); }
+    }
+    .animate-wobble {
+      animation: wobble 2.2s infinite ease-in-out;
+    }
+
+    /* 風船のゆらゆら浮遊アニメーション */
+    @keyframes floatUpAndDown {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(3deg); }
+    }
+
+    .balloon-float-1 { animation: floatUpAndDown 2.8s ease-in-out infinite; }
+    .balloon-float-2 { animation: floatUpAndDown 3.2s ease-in-out infinite 0.4s; }
+    .balloon-float-3 { animation: floatUpAndDown 2.5s ease-in-out infinite 0.8s; }
+    .balloon-float-4 { animation: floatUpAndDown 3.5s ease-in-out infinite 0.2s; }
+
+    /* 風船が割れる時のアニメーション */
+    @keyframes balloonPop {
+      0% { transform: scale(1); opacity: 1; }
+      40% { transform: scale(1.25); opacity: 0.9; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+    .animate-balloon-pop {
+      animation: balloonPop 0.18s ease-out forwards;
+    }
+
+    /* 風船が新しく生まれるアニメーション */
+    @keyframes balloonSpawn {
+      0% { transform: scale(0) translateY(30px); opacity: 0; }
+      70% { transform: scale(1.1) translateY(-5px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .animate-balloon-spawn {
+      animation: balloonSpawn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* もぐもぐご飯：口のパクパクアニメーション（横幅は常時と完全同一・縦方向のみ開閉） */
+    @keyframes mouthChew {
+      0%, 100% {
+        transform: scaleY(1);
+      }
+      50% {
+        transform: scaleY(0.18);
+      }
+    }
+
+    .animate-chew {
+      animation: mouthChew 0.24s ease-in-out infinite;
+      transform-origin: center top;
+    }
+
+    /* 食べ物の移動アニメーション */
+    .eating-float {
+      transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.25s ease-out;
+    }
+
+    /* ごちそうさま時のハッピーバウンド */
+    @keyframes happyBounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      40% { transform: translateY(-16px) scale(1.06); }
+      70% { transform: translateY(4px) scale(0.98); }
+    }
+    .animate-happy {
+      animation: happyBounce 0.8s ease-in-out infinite;
+    }
+
+    /* 紙吹雪・パーティクル */
+    .particle {
+      position: absolute;
+      pointer-events: none;
+      animation: popParticle 0.9s ease-out forwards;
+    }
+
+    @keyframes popParticle {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start text-gray-800 antialiased p-3 sm:p-5 select-none overflow-x-hidden">
+
+  <!-- ==================== VIEW 1: トップ画面 ==================== -->
+  <main id="view-top" class="w-full max-w-sm sm:max-w-md flex flex-col items-center py-4 transition-opacity duration-300">
+    <!-- バッジ -->
+    <div class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#FFF4D4] border border-[#FFE08A] rounded-full text-[#B45309] text-xs sm:text-sm font-bold shadow-sm mb-4">
+      <span>✨</span>
+      <span>とうちゃんの完全無料・知育ゲーム</span>
+      <span>🎈</span>
+    </div>
+
+    <!-- メインタイトル -->
+    <div class="text-center mb-1">
+      <div class="flex items-center justify-center gap-1 text-4xl sm:text-5xl font-black tracking-wider leading-tight">
+        <span class="text-[#EF4444] drop-shadow-md">と</span>
+        <span class="text-[#F97316] drop-shadow-md">う</span>
+        <span class="text-[#EAB308] drop-shadow-md">ち</span>
+        <span class="text-[#EC4899] drop-shadow-md">ゃ</span>
+        <span class="text-[#3B82F6] drop-shadow-md">ん</span>
+        <span class="text-[#8B5CF6] drop-shadow-md text-3xl sm:text-4xl ml-1">の</span>
+      </div>
+      <div class="flex items-center justify-center gap-1.5 text-4xl sm:text-5xl font-black tracking-wider leading-tight mt-1">
+        <span class="text-[#10B981] drop-shadow-md">ゲ</span>
+        <span class="text-[#06B6D4] drop-shadow-md">ー</span>
+        <span class="text-[#F59E0B] drop-shadow-md">ム</span>
+        <span class="text-[#EC4899] drop-shadow-md">ラ</span>
+        <span class="text-[#EAB308] drop-shadow-md">ボ</span>
+      </div>
+    </div>
+
+    <!-- サブタイトル -->
+    <p class="text-[#475569] font-bold text-base sm:text-lg mt-3 mb-6 tracking-wide">
+      なんさいの ゲームで あそぶ？
+    </p>
+
+    <!-- 年齢選択リスト -->
+    <div class="w-full flex flex-col gap-4">
+      <!-- 2さいボタン（クリックで2歳メニューへ） -->
+      <button onclick="switchView('view-menu')" class="group relative w-full text-left p-4 rounded-3xl bg-gradient-to-r from-[#F472B6] to-[#FB7185] text-white shadow-[0_10px_20px_-5px_rgba(244,114,182,0.45)] hover:shadow-lg active:scale-98 transition transform flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-sm flex items-center justify-center text-3xl shadow-inner">
+            🐣
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl font-black">2さい</span>
+              <span class="bg-white/30 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">はじめて</span>
+            </div>
+            <p class="text-xs sm:text-sm text-pink-100 font-bold mt-1">さわると音がなる・動くあそび</p>
+          </div>
+        </div>
+        <div class="text-white text-2xl pr-2 font-bold group-hover:translate-x-1 transition-transform">➔</div>
+      </button>
+
+      <!-- 3さいボタン -->
+      <button onclick="showSimpleToast('3さいのゲームも じゅんびちゅうだよ！')" class="group relative w-full text-left p-4 rounded-3xl bg-gradient-to-r from-[#38BDF8] to-[#60A5FA] text-white shadow-[0_10px_20px_-5px_rgba(56,189,248,0.45)] hover:shadow-lg active:scale-98 transition transform flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-sm flex items-center justify-center text-3xl shadow-inner">
+            🚗
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl font-black">3さい</span>
+              <span class="bg-white/30 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">たのしい</span>
+            </div>
+            <p class="text-xs sm:text-sm text-sky-100 font-bold mt-1">いろ・かたち・かんたんクイズ</p>
+          </div>
+        </div>
+        <div class="text-white text-2xl pr-2 font-bold group-hover:translate-x-1 transition-transform">➔</div>
+      </button>
+
+      <!-- 4~5さいボタン -->
+      <button onclick="showSimpleToast('4〜5さいのゲームも じゅんびちゅうだよ！')" class="group relative w-full text-left p-4 rounded-3xl bg-gradient-to-r from-[#34D399] to-[#2DD4BF] text-white shadow-[0_10px_20px_-5px_rgba(52,211,153,0.45)] hover:shadow-lg active:scale-98 transition transform flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-sm flex items-center justify-center text-3xl shadow-inner">
+            🧩
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl font-black">4〜5さい</span>
+              <span class="bg-white/30 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">わくわく</span>
+            </div>
+            <p class="text-xs sm:text-sm text-emerald-100 font-bold mt-1">めいろ・すうじ・アクション</p>
+          </div>
+        </div>
+        <div class="text-white text-2xl pr-2 font-bold group-hover:translate-x-1 transition-transform">➔</div>
+      </button>
+    </div>
+  </main>
+  <!-- ==================== VIEW 2: 2さいのゲーム一覧 ==================== -->
+  <main id="view-menu" class="hidden w-full max-w-sm sm:max-w-md flex-col items-start py-4 transition-opacity duration-300">
+    <!-- もどるボタン -->
+    <button onclick="switchView('view-top')" class="px-4 py-2 bg-white rounded-full text-gray-700 text-sm font-bold shadow-md hover:bg-gray-50 active:scale-95 transition flex items-center gap-1.5 border border-gray-100 mb-5">
+      <span>⬅</span>
+      <span>トップへもどる</span>
+    </button>
+
+    <!-- 見出し -->
+    <div class="flex items-center gap-2 mb-1">
+      <span class="text-3xl">🐣</span>
+      <h2 class="text-2xl font-black text-[#E11D48] tracking-tight">2さいのゲーム</h2>
+    </div>
+    <p class="text-gray-500 font-bold text-sm mb-6">すきな あそびを えらんでね！</p>
+
+    <!-- ゲーム一覧リスト -->
+    <div class="w-full flex flex-col gap-4">
+      <!-- いないいないばぁ！扉（メイン） -->
+      <button onclick="startGame('door')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-amber-300 hover:border-amber-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-100 to-amber-200 flex items-center justify-center text-3xl shadow-inner border border-amber-200/60">
+          🚪
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-1.5">
+            <h3 class="text-lg font-black text-gray-800 group-hover:text-amber-600 transition">いないいないばぁ！扉</h3>
+            <span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-black">にんき</span>
+          </div>
+          <p class="text-xs text-gray-500 font-medium mt-1">タッチで とびらが パッと ひらくよ！</p>
+        </div>
+        <div class="text-amber-400 text-xl font-bold pr-1">➔</div>
+      </button>
+
+      <!-- ぽんぽん風船割り（新規追加） -->
+      <button onclick="startGame('balloon')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-sky-300 hover:border-sky-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-100 to-pink-100 flex items-center justify-center text-3xl shadow-inner border border-sky-200/60">
+          🎈
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-1.5">
+            <h3 class="text-lg font-black text-gray-800 group-hover:text-sky-600 transition">ぽんぽん風船割り</h3>
+            <span class="bg-sky-100 text-sky-600 text-[10px] px-2 py-0.5 rounded-full font-black">にんき</span>
+          </div>
+          <p class="text-xs text-gray-500 font-medium mt-1">タッチで ふうせんが パチンッ！とはじけるよ！</p>
+        </div>
+        <div class="text-sky-400 text-xl font-bold pr-1">➔</div>
+      </button>
+
+      <!-- もぐもぐご飯（新規追加） -->
+      <button onclick="startGame('eat')" class="w-full text-left p-4 rounded-3xl bg-white border-2 border-emerald-300 hover:border-emerald-400 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-100 to-amber-100 flex items-center justify-center text-3xl shadow-inner border border-emerald-200/60">
+          🍙
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-1.5">
+            <h3 class="text-lg font-black text-gray-800 group-hover:text-emerald-600 transition">もぐもぐご飯</h3>
+            <span class="bg-emerald-100 text-emerald-600 text-[10px] px-2 py-0.5 rounded-full font-black">おすすめ</span>
+          </div>
+          <p class="text-xs text-gray-500 font-medium mt-1">タッチでおくちが パクパク！ごはんをたべるよ！</p>
+        </div>
+        <div class="text-emerald-400 text-xl font-bold pr-1">➔</div>
+      </button>
+
+      <!-- ぽんぽんタッチ（既存作イメージ） -->
+      <button onclick="startGame('touch')" class="w-full text-left p-4 rounded-3xl bg-white border border-pink-100 hover:border-pink-200 shadow-md hover:shadow-lg active:scale-98 transition flex items-center gap-4 group">
+        <div class="w-16 h-16 rounded-2xl bg-[#FFF1F2] flex items-center justify-center text-3xl shadow-inner">
+          ⭐
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-black text-gray-800">ぽんぽんタッチ</h3>
+          <p class="text-xs text-gray-500 font-medium mt-1">がめんを タップして おとをならそう！</p>
+        </div>
+        <div class="text-pink-300 text-xl font-bold pr-1">➔</div>
+      </button>
+    </div>
+  </main>
+  <!-- ==================== VIEW 3: いないいないばぁ！扉 ゲーム画面 ==================== -->
+  <main id="view-game" class="hidden w-full max-w-sm sm:max-w-md flex flex-col items-center py-2 h-[94vh] max-h-[850px] justify-between">
+    <!-- ヘッダー操作部 -->
+    <div class="w-full flex items-center justify-between px-1 mb-2">
+      <button onclick="switchView('view-menu')" class="px-3.5 py-1.5 bg-white rounded-full text-gray-600 text-xs font-bold shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition flex items-center gap-1">
+        <span>⬅</span>
+        <span>もどる</span>
+      </button>
+
+      <!-- ステージ切り替え（とびら / 草むら / カーテン） -->
+      <div class="flex bg-amber-100/70 p-1 rounded-2xl gap-1 text-xs font-bold">
+        <button id="mode-house" onclick="changeTheme('house')" class="px-2.5 py-1 rounded-xl bg-white text-amber-900 shadow-sm transition">🚪 とびら</button>
+        <button id="mode-grass" onclick="changeTheme('grass')" class="px-2.5 py-1 rounded-xl text-amber-800 hover:bg-white/60 transition">🌿 くさむら</button>
+        <button id="mode-curtain" onclick="changeTheme('curtain')" class="px-2.5 py-1 rounded-xl text-amber-800 hover:bg-white/60 transition">🎪 カーテン</button>
+      </div>
+    </div>
+
+    <!-- ガイドテキスト -->
+    <div class="text-center my-1">
+      <p id="game-guide-text" class="text-sm sm:text-base font-black text-amber-800 tracking-wide flex items-center justify-center gap-1">
+        <span class="animate-bounce">🌟</span>
+        <span id="guide-message">とびらを とんとん してみてね！</span>
+        <span class="animate-bounce">🌟</span>
+      </p>
+    </div>
+
+    <!-- ゲームメイン枠（点線ボーダーのカードUI） -->
+    <div id="interactive-stage" onclick="handleStageClick(event)" class="relative w-full flex-1 bg-white rounded-3xl border-4 border-dashed border-amber-200/80 shadow-[0_15px_30px_-5px_rgba(251,191,36,0.15)] flex flex-col items-center justify-center p-3 sm:p-5 overflow-hidden cursor-pointer active:scale-[0.99] transition-transform">
+      
+      <!-- 背景デコレーション（窓・星・雲） -->
+      <div id="bg-decorations" class="absolute inset-0 pointer-events-none opacity-40 flex flex-col justify-between p-4">
+        <div class="flex justify-between">
+          <span class="text-2xl animate-pulse">☁️</span>
+          <span class="text-2xl animate-pulse" style="animation-delay: 1s;">✨</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-xl">🌸</span>
+          <span class="text-xl">🎈</span>
+        </div>
+      </div>
+
+      <!-- ==================== ステージ要素 ==================== -->
+      <div class="relative w-full max-w-[280px] h-[340px] flex items-center justify-center">
+
+        <!-- 隠れている中身（動物・乗り物・食べ物など） -->
+        <div id="secret-content" class="absolute inset-0 flex flex-col items-center justify-center z-10 select-none pointer-events-none">
+          <!-- キャラクターアイコン -->
+          <div id="char-icon" class="text-8xl sm:text-9xl drop-shadow-xl transform transition-transform opacity-0 scale-50">
+            🐶
+          </div>
+          <!-- 吹き出しメッセージ -->
+          <div id="char-bubble" class="opacity-0 transition-opacity duration-300 mt-3 px-5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 text-white font-black text-2xl shadow-lg border-2 border-white transform scale-90">
+            ばぁ〜〜！✨
+          </div>
+          <!-- 名前ラベル -->
+          <span id="char-name" class="opacity-0 font-black text-gray-700 text-lg mt-1 tracking-wider">
+            いぬさん
+          </span>
+        </div>
+
+        <!-- 1. シンプルな扉モード (屋根や遮蔽壁を撤廃し扉のみに) -->
+        <div id="theme-house" class="door-perspective absolute inset-0 z-20 flex items-center justify-center">
+          <div class="relative w-full h-full rounded-3xl border-4 border-amber-600/30 flex overflow-visible bg-transparent shadow-sm">
+            <!-- 左扉 -->
+            <div id="door-l" class="door-left w-1/2 h-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 rounded-l-2xl border-r-2 border-amber-700 shadow-md flex items-center justify-end pr-3">
+              <!-- ドアノブ -->
+              <div class="w-5 h-5 rounded-full bg-yellow-200 border-2 border-amber-800 shadow flex items-center justify-center">
+                <div class="w-1.5 h-1.5 rounded-full bg-amber-700"></div>
+              </div>
+            </div>
+            <!-- 右扉 -->
+            <div id="door-r" class="door-right w-1/2 h-full bg-gradient-to-l from-amber-500 via-amber-400 to-amber-500 rounded-r-2xl border-l-2 border-amber-700 shadow-md flex items-center justify-start pl-3">
+              <!-- ドアノブ -->
+              <div class="w-5 h-5 rounded-full bg-yellow-200 border-2 border-amber-800 shadow flex items-center justify-center">
+                <div class="w-1.5 h-1.5 rounded-full bg-amber-700"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 草むらモード -->
+        <div id="theme-grass" class="hidden absolute inset-0 z-20 flex items-end justify-center pointer-events-none">
+          <div id="grass-l" class="grass-left w-3/5 h-[80%] bg-emerald-500 rounded-t-[100px] border-4 border-emerald-600 shadow-lg flex items-center justify-center text-4xl pr-4 -mr-6">
+            🌿
+          </div>
+          <div id="grass-r" class="grass-right w-3/5 h-[85%] bg-green-500 rounded-t-[100px] border-4 border-green-600 shadow-lg flex items-center justify-center text-4xl pl-4">
+            🍃
+          </div>
+        </div>
+
+        <!-- 3. カーテンモード -->
+        <div id="theme-curtain" class="hidden absolute inset-0 z-20 flex justify-between pointer-events-none overflow-hidden rounded-2xl border-4 border-purple-200">
+          <div id="curtain-l" class="curtain-left w-1/2 h-full bg-gradient-to-r from-purple-500 to-indigo-500 border-r-4 border-purple-700 shadow-xl flex items-center justify-center text-2xl text-purple-200">
+            ✦
+          </div>
+          <div id="curtain-r" class="curtain-right w-1/2 h-full bg-gradient-to-l from-purple-500 to-indigo-500 border-l-4 border-purple-700 shadow-xl flex items-center justify-center text-2xl text-purple-200">
+            ✦
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 下部操作ヒント -->
+      <div id="touch-hint" class="mt-4 px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold animate-wobble flex items-center gap-1.5 shadow-sm">
+        <span>👆</span>
+        <span id="hint-action-text">ここを タップしてね！</span>
+      </div>
+
+    </div>
+
+    <!-- 下部ボタン：もういっかい！ -->
+    <div class="w-full flex justify-center py-2">
+      <button id="reset-button" onclick="resetOrNextDoor(event)" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-black text-lg shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+        <span>🔄</span>
+        <span id="btn-label">もう１かい あける！</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ==================== VIEW 4: ぽんぽん風船割り ゲーム画面 ==================== -->
+  <main id="view-balloon" class="hidden w-full max-w-sm sm:max-w-md flex-col items-center py-2 h-[94vh] max-h-[850px] justify-between">
+    <!-- ヘッダー操作部 -->
+    <div class="w-full flex items-center justify-between px-1 mb-2">
+      <button onclick="switchView('view-menu')" class="px-3.5 py-1.5 bg-white rounded-full text-gray-600 text-xs font-bold shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition flex items-center gap-1">
+        <span>⬅</span>
+        <span>もどる</span>
+      </button>
+
+      <!-- 割った個数カウント -->
+      <div class="flex items-center gap-1.5 bg-sky-100/80 px-3 py-1 rounded-full border border-sky-200">
+        <span class="text-xs">🎈 わったかず:</span>
+        <span id="balloon-pop-counter" class="text-sm font-black text-sky-600">0</span>
+      </div>
+    </div>
+
+    <!-- ガイドテキスト -->
+    <div class="text-center my-1">
+      <p class="text-sm sm:text-base font-black text-sky-800 tracking-wide flex items-center justify-center gap-1">
+        <span class="animate-bounce">✨</span>
+        <span id="balloon-guide-message">ふうせんを ポンポン してみてね！</span>
+        <span class="animate-bounce">🎈</span>
+      </p>
+    </div>
+
+    <!-- ゲームメイン枠（点線カードUI） -->
+    <div id="balloon-stage" class="relative w-full flex-1 bg-gradient-to-b from-sky-50/50 via-white to-sky-50/40 rounded-3xl border-4 border-dashed border-sky-200 shadow-[0_15px_30px_-5px_rgba(56,189,248,0.15)] flex flex-col items-center justify-center p-3 overflow-hidden select-none">
+      
+      <!-- 背景の雲と星デコレーション -->
+      <div class="absolute inset-0 pointer-events-none opacity-40 flex flex-col justify-between p-4">
+        <div class="flex justify-between">
+          <span class="text-2xl animate-pulse">☁️</span>
+          <span class="text-2xl animate-pulse" style="animation-delay: 1.2s;">✨</span>
+        </div>
+        <div class="flex justify-around">
+          <span class="text-xl">🌈</span>
+          <span class="text-xl">☀️</span>
+        </div>
+      </div>
+
+      <!-- 風船配置コンテナ -->
+      <div id="balloon-container" class="relative w-full h-full min-h-[320px] flex flex-wrap items-center justify-around content-around p-2">
+        <!-- JSで動的生成される風船たち -->
+      </div>
+
+      <!-- 下部ヒント -->
+      <div class="absolute bottom-2 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-white/90 border border-sky-200 text-sky-700 text-xs font-bold animate-wobble flex items-center gap-1.5 shadow-sm pointer-events-none">
+        <span>👆</span>
+        <span>さわると パチンッ！ときえるよ</span>
+      </div>
+    </div>
+
+    <!-- 下部ボタン：ふうせんを ふやす！ -->
+    <div class="w-full flex justify-center py-2">
+      <button onclick="resetAllBalloons(true)" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-400 hover:from-sky-500 hover:to-indigo-500 text-white font-black text-lg shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+        <span>🎈</span>
+        <span>ふうせんを いっぱいにする！</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ==================== VIEW 5: もぐもぐご飯 ゲーム画面 ==================== -->
+  <main id="view-eat" class="hidden w-full max-w-sm sm:max-w-md flex-col items-center py-2 h-[94vh] max-h-[850px] justify-between">
+    <!-- ヘッダー操作部 -->
+    <div class="w-full flex items-center justify-between px-1 mb-1">
+      <button onclick="switchView('view-menu')" class="px-3.5 py-1.5 bg-white rounded-full text-gray-600 text-xs font-bold shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition flex items-center gap-1">
+        <span>⬅</span>
+        <span>もどる</span>
+      </button>
+
+      <!-- 動物切り替えタブ（くま・うさぎ・カバ） -->
+      <div class="flex bg-amber-100/70 p-1 rounded-2xl gap-1 text-xs font-bold">
+        <button id="eat-animal-bear" onclick="changeEatAnimal('bear')" class="px-2.5 py-1 rounded-xl bg-white text-amber-900 shadow-sm transition">🐻 クマ</button>
+        <button id="eat-animal-rabbit" onclick="changeEatAnimal('rabbit')" class="px-2.5 py-1 rounded-xl text-amber-800 hover:bg-white/60 transition">🐰 うさぎ</button>
+        <button id="eat-animal-hippo" onclick="changeEatAnimal('hippo')" class="px-2.5 py-1 rounded-xl text-amber-800 hover:bg-white/60 transition">🦛 カバ</button>
+      </div>
+    </div>
+
+    <!-- ガイドテキスト -->
+    <div class="text-center my-1">
+      <p id="eat-guide-text" class="text-sm sm:text-base font-black text-amber-800 tracking-wide flex items-center justify-center gap-1">
+        <span>🥄</span>
+        <span id="eat-guide-message">クマさんに ごはんを たべさせてね！</span>
+        <span>😋</span>
+      </p>
+    </div>
+
+    <!-- ゲームメイン枠（点線カードUI） -->
+    <div id="eat-stage" class="relative w-full flex-1 bg-gradient-to-b from-amber-50/40 via-white to-amber-50/30 rounded-3xl border-4 border-dashed border-amber-200 shadow-[0_15px_30px_-5px_rgba(251,191,36,0.15)] flex flex-col items-center justify-between p-3 sm:p-4 overflow-hidden select-none">
+      
+      <!-- 背景デコレーション -->
+      <div class="absolute inset-0 pointer-events-none opacity-30 flex flex-col justify-between p-3">
+        <div class="flex justify-between text-xl">
+          <span>🍽️</span>
+          <span>✨</span>
+        </div>
+        <div class="flex justify-between text-xl">
+          <span>🌸</span>
+          <span>🌟</span>
+        </div>
+      </div>
+
+      <!-- 動物キャラクター表示エリア -->
+      <div class="relative w-full flex-1 flex flex-col items-center justify-center min-h-[220px]">
+        
+        <!-- キャラクター本体（SVGグラフィックで意匠を切り替え） -->
+        <div id="eat-character" class="relative w-64 h-64 flex items-center justify-center transition-transform">
+          
+          <!-- クマの意匠 (画像準拠のパステル水色デザイン) -->
+          <svg id="svg-bear" class="w-full h-full drop-shadow-md" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 外耳 -->
+            <circle cx="48" cy="62" r="32" fill="#E0F7FA" stroke="#80DEEA" stroke-width="8"/>
+            <circle cx="192" cy="62" r="32" fill="#E0F7FA" stroke="#80DEEA" stroke-width="8"/>
+            <!-- 内耳 -->
+            <circle cx="48" cy="62" r="16" fill="#FFFFFF"/>
+            <circle cx="192" cy="62" r="16" fill="#FFFFFF"/>
+            <!-- 顔輪郭 -->
+            <rect x="28" y="44" width="184" height="176" rx="88" fill="#E0F7FA" stroke="#80DEEA" stroke-width="8"/>
+            <!-- 目（通常） -->
+            <g id="bear-eyes-normal">
+              <circle cx="78" cy="98" r="10" fill="#1E293B"/>
+              <circle cx="75" cy="94" r="3.5" fill="#FFFFFF"/>
+              <circle cx="162" cy="98" r="10" fill="#1E293B"/>
+              <circle cx="159" cy="94" r="3.5" fill="#FFFFFF"/>
+            </g>
+            <!-- 目（笑顔：完食時） -->
+            <g id="bear-eyes-happy" class="hidden">
+              <path d="M68 100 Q78 88 88 100" stroke="#1E293B" stroke-width="6" stroke-linecap="round" fill="none"/>
+              <path d="M152 100 Q162 88 172 100" stroke="#1E293B" stroke-width="6" stroke-linecap="round" fill="none"/>
+            </g>
+            <!-- ほっぺ -->
+            <ellipse cx="60" cy="116" rx="14" ry="9" fill="#F472B6" opacity="0.75"/>
+            <ellipse cx="180" cy="116" rx="14" ry="9" fill="#F472B6" opacity="0.75"/>
+            <!-- 鼻 -->
+            <circle cx="120" cy="118" r="6" fill="#8D6E63"/>
+          </svg>
+
+          <!-- うさぎの意匠 -->
+          <svg id="svg-rabbit" class="hidden w-full h-full drop-shadow-md" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 長い耳 -->
+            <g id="rabbit-ears">
+              <rect x="62" y="4" width="34" height="85" rx="17" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="7"/>
+              <rect x="71" y="16" width="16" height="58" rx="8" fill="#F472B6" opacity="0.6"/>
+              <rect x="144" y="4" width="34" height="85" rx="17" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="7"/>
+              <rect x="153" y="16" width="16" height="58" rx="8" fill="#F472B6" opacity="0.6"/>
+            </g>
+            <!-- 顔輪郭 -->
+            <ellipse cx="120" cy="142" rx="90" ry="78" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="7"/>
+            <!-- 目（通常） -->
+            <g id="rabbit-eyes-normal">
+              <ellipse cx="80" cy="120" rx="9" ry="11" fill="#1E293B"/>
+              <circle cx="77" cy="116" r="3.5" fill="#FFFFFF"/>
+              <ellipse cx="160" cy="120" rx="9" ry="11" fill="#1E293B"/>
+              <circle cx="157" cy="116" r="3.5" fill="#FFFFFF"/>
+            </g>
+            <!-- 目（笑顔） -->
+            <g id="rabbit-eyes-happy" class="hidden">
+              <path d="M70 122 Q80 110 90 122" stroke="#1E293B" stroke-width="6" stroke-linecap="round" fill="none"/>
+              <path d="M150 122 Q160 110 170 122" stroke="#1E293B" stroke-width="6" stroke-linecap="round" fill="none"/>
+            </g>
+            <!-- ほっぺ -->
+            <ellipse cx="64" cy="136" rx="13" ry="9" fill="#FB7185" opacity="0.75"/>
+            <ellipse cx="176" cy="136" rx="13" ry="9" fill="#FB7185" opacity="0.75"/>
+            <!-- 鼻 -->
+            <path d="M115 130 L125 130 L120 137 Z" fill="#FB7185"/>
+          </svg>
+
+          <!-- カバの意匠 -->
+          <svg id="svg-hippo" class="hidden w-full h-full drop-shadow-md" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- ちょこんとした小さい耳 -->
+            <circle cx="48" cy="70" r="20" fill="#DDD6FE" stroke="#A78BFA" stroke-width="7"/>
+            <circle cx="48" cy="70" r="10" fill="#EDE9FE"/>
+            <circle cx="192" cy="70" r="20" fill="#DDD6FE" stroke="#A78BFA" stroke-width="7"/>
+            <circle cx="192" cy="70" r="10" fill="#EDE9FE"/>
+            <!-- 顔上部 -->
+            <ellipse cx="120" cy="98" rx="80" ry="60" fill="#EDE9FE" stroke="#A78BFA" stroke-width="7"/>
+            <!-- 大きなカバのマズル -->
+            <ellipse cx="120" cy="155" rx="92" ry="65" fill="#DDD6FE" stroke="#A78BFA" stroke-width="7"/>
+            <!-- 目（通常） -->
+            <g id="hippo-eyes-normal">
+              <circle cx="82" cy="85" r="9" fill="#1E293B"/>
+              <circle cx="79" cy="82" r="3" fill="#FFFFFF"/>
+              <circle cx="158" cy="85" r="9" fill="#1E293B"/>
+              <circle cx="155" cy="82" r="3" fill="#FFFFFF"/>
+            </g>
+            <!-- 目（笑顔） -->
+            <g id="hippo-eyes-happy" class="hidden">
+              <path d="M73 88 Q82 76 91 88" stroke="#1E293B" stroke-width="6" stroke-linecap="round" fill="none"/>
+              <path d="M149 88 Q158 76 167 88" stroke="#1E293B" stroke-width="6" stroke-linecap="round" fill="none"/>
+            </g>
+            <!-- ほっぺ -->
+            <circle cx="56" cy="120" r="12" fill="#F472B6" opacity="0.6"/>
+            <circle cx="184" cy="120" r="12" fill="#F472B6" opacity="0.6"/>
+            <!-- カバの大きな2つの鼻の穴 -->
+            <ellipse cx="98" cy="116" rx="8" ry="11" fill="#7C3AED" opacity="0.65"/>
+            <ellipse cx="142" cy="116" rx="8" ry="11" fill="#7C3AED" opacity="0.65"/>
+          </svg>
+
+          <!-- 普段（待機時）の閉じたお口（動物ごとに可愛い曲線で表示） -->
+          <div id="mouth-closed" class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none transition-transform" style="top: 148px;">
+            <svg id="svg-mouth-closed" width="80" height="30" viewBox="0 0 80 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path id="mouth-closed-path" d="M5 8 Q22 23 40 13 Q58 23 75 8" stroke="#B45309" stroke-width="5" stroke-linecap="round" fill="none"/>
+            </svg>
+          </div>
+
+          <!-- 食事中（もぐもぐ時）の開いた口：デフォルトの口幅と完全一致させて縦のみ開閉 -->
+          <div id="mouth-wrapper" class="hidden absolute left-1/2 -translate-x-1/2 w-[76px] h-[58px] pointer-events-none" style="top: 140px;">
+            <div id="mouth-container" class="w-full h-full relative flex items-center justify-center transition-transform">
+              <!-- 口の穴（横幅はデフォルト口幅と同一・縦方向のみパクパク開閉） -->
+              <div id="mouth-cavity" class="w-full h-full rounded-[38px_38px_45px_45px] bg-[#3B0912] border-[4px] border-[#B45309] overflow-hidden relative shadow-inner flex flex-col items-center justify-between">
+                <!-- 歯（キャラクターに応じて切り替え） -->
+                <div id="mouth-teeth-top" class="w-full flex justify-center gap-1.5 pt-0.5 z-10">
+                  <div class="w-3.5 h-3 bg-white rounded-b-sm shadow-sm"></div>
+                  <div class="w-3.5 h-3 bg-white rounded-b-sm shadow-sm"></div>
+                </div>
+                <!-- 舌（ぷっくりピンク） -->
+                <div id="mouth-tongue" class="w-14 h-8 rounded-t-full bg-[#FB7185] border-t-2 border-[#F43F5E] mb-[-3px]"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 食べ物もぐもぐ吸い込みエフェクト用アンカー -->
+          <div id="mouth-target" class="absolute top-[160px] left-1/2 -translate-x-1/2 w-4 h-4 pointer-events-none"></div>
+        </div>
+
+        <!-- 完食吹き出しメッセージ -->
+        <div id="eat-bubble" class="hidden opacity-0 transition-all duration-300 -mt-2 px-5 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 text-white font-black text-lg shadow-lg border-2 border-white transform scale-90 z-20">
+          おいしかった〜！ごちそうさま！✨
+        </div>
+      </div>
+
+      <!-- 食べ物セレクター＆スプーン操作エリア -->
+      <div class="w-full flex flex-col items-center gap-2 z-10">
+        
+        <!-- 現在の食べ物＆食べ進みゲージ -->
+        <div class="w-full max-w-[260px] bg-white/90 rounded-2xl p-2 border-2 border-amber-200 shadow-sm flex items-center justify-between">
+          <span class="text-xs font-bold text-amber-800 ml-1">たべたぶん:</span>
+          <!-- 4口ゲージ -->
+          <div class="flex gap-1.5 mr-1">
+            <div id="bite-1" class="w-6 h-3 rounded-full bg-amber-200 border border-amber-300 transition-colors"></div>
+            <div id="bite-2" class="w-6 h-3 rounded-full bg-amber-200 border border-amber-300 transition-colors"></div>
+            <div id="bite-3" class="w-6 h-3 rounded-full bg-amber-200 border border-amber-300 transition-colors"></div>
+            <div id="bite-4" class="w-6 h-3 rounded-full bg-amber-200 border border-amber-300 transition-colors"></div>
+          </div>
+        </div>
+
+        <!-- 大きなスプーン＆食べ物（タップ／長押しでモグモグ） -->
+        <div class="relative flex items-center justify-center my-1">
+          <div id="food-interactive-btn"
+               class="eating-float relative px-6 py-3 rounded-3xl bg-gradient-to-b from-white to-amber-50 border-4 border-amber-300 shadow-md active:scale-95 cursor-pointer touch-manipulation flex items-center gap-3">
+            
+            <div class="text-3xl">🥄</div>
+            <!-- 現在の食べ物アイコン（4口でだんだん小さくなる） -->
+            <div id="active-food-icon" class="text-5xl transition-transform duration-200 drop-shadow select-none">
+              🍙
+            </div>
+            <div class="flex flex-col text-left">
+              <span id="active-food-name" class="font-black text-amber-900 text-base">おにぎり</span>
+              <span class="text-[10px] text-amber-700 font-bold bg-amber-100/80 px-2 py-0.5 rounded-full">おして もぐもぐ！</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 食べ物メニューパレット（おにぎり、プリン、りんご、バナナ、おにく） -->
+        <div class="w-full flex justify-center gap-2 pt-1">
+          <button onclick="selectFood('onigiri', 'おにぎり', '🍙')" class="food-opt-btn p-2 rounded-2xl bg-white border-2 border-amber-300 shadow-sm active:scale-90 text-2xl transition hover:border-amber-400">🍙</button>
+          <button onclick="selectFood('pudding', 'プリン', '🍮')" class="food-opt-btn p-2 rounded-2xl bg-white border border-amber-200 shadow-sm active:scale-90 text-2xl transition hover:border-amber-400">🍮</button>
+          <button onclick="selectFood('apple', 'りんご', '🍎')" class="food-opt-btn p-2 rounded-2xl bg-white border border-amber-200 shadow-sm active:scale-90 text-2xl transition hover:border-amber-400">🍎</button>
+          <button onclick="selectFood('banana', 'バナナ', '🍌')" class="food-opt-btn p-2 rounded-2xl bg-white border border-amber-200 shadow-sm active:scale-90 text-2xl transition hover:border-amber-400">🍌</button>
+          <button onclick="selectFood('meat', 'おにく', '🍖')" class="food-opt-btn p-2 rounded-2xl bg-white border border-amber-200 shadow-sm active:scale-90 text-2xl transition hover:border-amber-400">🍖</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下部ボタン：おかわり！ -->
+    <div class="w-full flex justify-center py-2">
+      <button onclick="resetFood(true)" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-lg shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+        <span>🍲</span>
+        <span id="eat-btn-label">おかわりをする！</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- トースト通知 -->
+  <div id="simple-toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-2xl transition-all duration-300 opacity-0 pointer-events-none z-50">
+    メッセージ
+  </div>
+
+  <script>
+    // 効果音エンジン (Web Audio API: 外部URL不使用で即応)
+    const SoundEffects = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      // もぐもぐ・あむあむ咀嚼音
+      playMunch() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        const startFreq = 260 + Math.random() * 80;
+        osc.frequency.setValueAtTime(startFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      },
+      // ごっくん・飲み込み音
+      playSwallow() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.12);
+        osc.frequency.exponentialRampToValueAtTime(380, now + 0.22);
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.23);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.24);
+      },
+      // ドアノック音「コンコン！」
+      playKnock() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [0, 0.12].forEach((offset, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(180 + idx * 30, now + offset);
+          osc.frequency.exponentialRampToValueAtTime(40, now + offset + 0.08);
+
+          gain.gain.setValueAtTime(0.4, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.08);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + offset);
+          osc.stop(now + offset + 0.09);
+        });
+      },
+      // 風船の破裂音「パチンッ！」「ポンッ！」
+      playPop() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        // 瞬間的なピッチ上昇＆急降下の高周波ポップ音
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        const startFreq = 400 + Math.random() * 200;
+        osc.frequency.setValueAtTime(startFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(1100 + Math.random() * 300, now + 0.03);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.09);
+
+        gain.gain.setValueAtTime(0.6, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.11);
+
+        // プチッという弾けのクラックノイズ
+        const bufferSize = this.ctx.sampleRate * 0.03;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.3, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+        noise.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+        noise.start(now);
+      },
+      // 全部割った時のファンファーレ
+      playCheer() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C, E, G, C, E
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.35, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.4);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.42);
+        });
+      },
+      // 飛び出しファンファーレ「ばぁ〜！」
+      playPeekaboo() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.07);
+
+          gain.gain.setValueAtTime(0.28, now + i * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.35);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.07);
+          osc.stop(now + i * 0.07 + 0.36);
+        });
+      },
+
+      // 扉が閉まる音「パタン」
+      playClose() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.12);
+
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.13);
+      },
+      // キラキラ音
+      playSparkle() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [1200, 1500, 1800, 2400].forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.04);
+          gain.gain.setValueAtTime(0.12, now + i * 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.2);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.04);
+          osc.stop(now + i * 0.04 + 0.22);
+        });
+      },
+      // もぐもぐ音「モグッ」「サクッ」
+      playChew() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        const baseFreq = 220 + Math.random() * 50;
+        osc.frequency.setValueAtTime(baseFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + 0.04);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.11);
+      },
+      // ごっくん音「ゴクンッ！」
+      playGulp() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.15);
+
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.17);
+      }
+    };
+
+    // キャラクターリスト（絵文字、名前、鳴き声やリアクション）
+    const CHARACTERS = [
+      { emoji: '🐶', name: 'いぬさん', soundText: 'わんわん！ばぁ！' },
+      { emoji: '🐱', name: 'ねこさん', soundText: 'にゃ〜ん！ばぁ！' },
+      { emoji: '🐰', name: 'うさぎさん', soundText: 'ぴょんぴょん！ばぁ！' },
+      { emoji: '🐣', name: 'ひよこさん', soundText: 'ぴよぴよ！ばぁ！' },
+      { emoji: '🦁', name: 'ライオンさん', soundText: 'がお〜〜！ばぁ！' },
+      { emoji: '🐻', name: 'くまさん', soundText: 'がおん！ばぁ！' },
+      { emoji: '🐼', name: 'パンダさん', soundText: 'もぐもぐ！ばぁ！' },
+      { emoji: '🐸', name: 'かえるさん', soundText: 'げこげこ！ばぁ！' },
+      { emoji: '🚗', name: 'くるま', soundText: 'ぶ〜〜ん！ばぁ！' },
+      { emoji: '🚒', name: 'しょうぼうしゃ', soundText: 'う〜〜！ばぁ！' },
+      { emoji: '🚀', name: 'ロケット', soundText: 'しゅ〜〜！ばぁ！' },
+      { emoji: '🍎', name: 'りんごちゃん', soundText: 'シャキッ！ばぁ！' }
+    ];
+
+    // ゲーム状態
+    let isOpen = false;
+    let currentTheme = 'house'; // 'house' | 'grass' | 'curtain'
+    let currentCharIndex = 0;
+
+    // 風船定義
+    const BALLOON_COLORS = [
+      { bg: 'from-red-400 to-rose-500', border: 'border-red-600', shadow: 'shadow-rose-300', emoji: '🍓', text: 'あか' },
+      { bg: 'from-sky-400 to-blue-500', border: 'border-sky-600', shadow: 'shadow-sky-300', emoji: '🐬', text: 'あお' },
+      { bg: 'from-amber-300 to-yellow-400', border: 'border-amber-500', shadow: 'shadow-yellow-300', emoji: '⭐', text: 'きいろ' },
+      { bg: 'from-emerald-400 to-green-500', border: 'border-emerald-600', shadow: 'shadow-emerald-300', emoji: '🍀', text: 'みどり' },
+      { bg: 'from-pink-400 to-rose-400', border: 'border-pink-500', shadow: 'shadow-pink-300', emoji: '🐰', text: 'ぴんく' },
+      { bg: 'from-purple-400 to-indigo-500', border: 'border-purple-600', shadow: 'shadow-purple-300', emoji: '🍇', text: 'むらさき' },
+      { bg: 'from-orange-400 to-amber-500', border: 'border-orange-600', shadow: 'shadow-orange-300', emoji: '🦁', text: 'おれんじ' }
+    ];
+
+    let balloonPopCount = 0;
+
+    // もぐもぐご飯用ステート
+    let currentEatAnimal = 'bear'; // 'bear' | 'rabbit' | 'hippo'
+    let currentFood = { id: 'onigiri', name: 'おにぎり', emoji: '🍙' };
+    let eatBiteProgress = 0; // 0..4 (4口で完食)
+    let isChewing = false;
+    let chewInterval = null;
+
+    function switchView(viewId) {
+      SoundEffects.init();
+      ['view-top', 'view-menu', 'view-game', 'view-balloon', 'view-eat'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (id === viewId) {
+          el.classList.remove('hidden');
+          el.classList.add('flex');
+        } else {
+          el.classList.add('hidden');
+          el.classList.remove('flex');
+        }
+      });
+      window.scrollTo(0, 0);
+    }
+
+    function startGame(gameType) {
+      if (gameType === 'door') {
+        switchView('view-game');
+        resetDoor(false);
+      } else if (gameType === 'balloon') {
+        switchView('view-balloon');
+        initBalloonGame();
+      } else if (gameType === 'eat') {
+        switchView('view-eat');
+        initEatGame();
+      } else {
+        showSimpleToast('「ぽんぽんタッチ」も じゅんびちゅうだよ！');
+      }
+    }
+
+    // もぐもぐご飯の初期化
+    function initEatGame() {
+      changeEatAnimal('bear');
+      selectFood('onigiri', 'おにぎり', '🍙');
+      setupFoodPointerEvents();
+    }
+
+    // 動物の切り替え（くま・うさぎ・カバで意匠を切り替え）
+    function changeEatAnimal(animal) {
+      currentEatAnimal = animal;
+
+      // ボタンのスタイル切り替え
+      ['bear', 'rabbit', 'hippo'].forEach(a => {
+        const btn = document.getElementById(`eat-animal-` + a);
+        if (a === animal) {
+          btn.className = 'px-2.5 py-1 rounded-xl bg-white text-amber-900 shadow-sm transition';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-xl text-amber-800 hover:bg-white/60 transition';
+        }
+      });
+
+      // SVG意匠の切り替え
+      document.getElementById('svg-bear').classList.toggle('hidden', animal !== 'bear');
+      document.getElementById('svg-rabbit').classList.toggle('hidden', animal !== 'rabbit');
+      document.getElementById('svg-hippo').classList.toggle('hidden', animal !== 'hippo');
+
+      // 口の配置・サイズをデフォルトの口幅と完全一致するように調整
+      const mouthWrapper = document.getElementById('mouth-wrapper');
+      const mouthTeeth = document.getElementById('mouth-teeth-top');
+      const mouthCavity = document.getElementById('mouth-cavity');
+      const mouthTongue = document.getElementById('mouth-tongue');
+      const closedWrapper = document.getElementById('mouth-closed');
+      const closedSvg = document.getElementById('svg-mouth-closed');
+      const closedPath = document.getElementById('mouth-closed-path');
+
+      if (animal === 'bear') {
+        // クマ：デフォルトの口幅 76px
+        closedWrapper.style.top = '148px';
+        closedSvg.setAttribute('width', '80');
+        closedSvg.setAttribute('viewBox', '0 0 80 30');
+        closedPath.setAttribute('d', 'M5 8 Q22 23 40 13 Q58 23 75 8');
+        closedPath.setAttribute('stroke', '#B45309');
+        closedPath.setAttribute('stroke-width', '5');
+
+        // 食事中の開いた口（横幅をデフォルトの76pxと同一に）
+        mouthWrapper.style.width = '76px';
+        mouthWrapper.style.height = '58px';
+        mouthWrapper.style.top = '140px';
+        mouthCavity.style.borderRadius = '38px 38px 45px 45px';
+        mouthCavity.style.borderColor = '#B45309';
+        mouthTeeth.innerHTML = `
+          <div class="w-3.5 h-3 bg-white rounded-b-sm shadow-sm"></div>
+          <div class="w-3.5 h-3 bg-white rounded-b-sm shadow-sm"></div>
+        `;
+        mouthTongue.className = 'w-14 h-8 rounded-t-full bg-[#FB7185] border-t-2 border-[#F43F5E] mb-[-3px]';
+      } else if (animal === 'rabbit') {
+        // うさぎ：デフォルトの口幅 64px
+        closedWrapper.style.top = '154px';
+        closedSvg.setAttribute('width', '70');
+        closedSvg.setAttribute('viewBox', '0 0 70 28');
+        closedPath.setAttribute('d', 'M5 9 Q19 22 35 14 Q51 22 65 9');
+        closedPath.setAttribute('stroke', '#FB7185');
+        closedPath.setAttribute('stroke-width', '4.5');
+
+        // 食事中の開いた口（横幅をデフォルトの64pxと同一に）
+        mouthWrapper.style.width = '64px';
+        mouthWrapper.style.height = '52px';
+        mouthWrapper.style.top = '148px';
+        mouthCavity.style.borderRadius = '32px 32px 38px 38px';
+        mouthCavity.style.borderColor = '#FB7185';
+        mouthTeeth.innerHTML = `
+          <div class="w-3.5 h-3.5 bg-white rounded-b-sm border-x border-b border-pink-200 shadow-sm"></div>
+          <div class="w-3.5 h-3.5 bg-white rounded-b-sm border-x border-b border-pink-200 shadow-sm"></div>
+        `;
+        mouthTongue.className = 'w-12 h-7 rounded-t-full bg-[#FB7185] border-t-2 border-[#F43F5E] mb-[-3px]';
+      } else if (animal === 'hippo') {
+        // カバ：デフォルトの口幅 90px
+        closedWrapper.style.top = '154px';
+        closedSvg.setAttribute('width', '94');
+        closedSvg.setAttribute('viewBox', '0 0 94 30');
+        closedPath.setAttribute('d', 'M5 10 Q47 25 89 10');
+        closedPath.setAttribute('stroke', '#7C3AED');
+        closedPath.setAttribute('stroke-width', '5.5');
+
+        // 食事中の開いた口（横幅をデフォルトの90pxと同一に）
+        mouthWrapper.style.width = '90px';
+        mouthWrapper.style.height = '62px';
+        mouthWrapper.style.top = '145px';
+        mouthCavity.style.borderRadius = '45px 45px 55px 55px';
+        mouthCavity.style.borderColor = '#7C3AED';
+        mouthTeeth.innerHTML = `
+          <div class="w-4 h-3.5 bg-white rounded-b-md shadow-sm"></div>
+          <div class="w-4 h-3.5 bg-white rounded-b-md shadow-sm"></div>
+        `;
+        mouthTongue.className = 'w-16 h-9 rounded-t-full bg-[#FB7185] border-t-2 border-[#F43F5E] mb-[-3px]';
+      }
+
+      resetFood(false);
+      updateEatGuide();
+      SoundEffects.playKnock();
+    }
+
+    // 食べ物選択
+    function selectFood(id, name, emoji) {
+      currentFood = { id, name, emoji };
+      document.getElementById('active-food-icon').innerText = emoji;
+      document.getElementById('active-food-name').innerText = name;
+
+      // 食べ物パレットのアクティブ状態
+      document.querySelectorAll('.food-opt-btn').forEach(b => {
+        if (b.innerText === emoji) {
+          b.className = 'food-opt-btn p-2 rounded-2xl bg-amber-100 border-2 border-amber-400 shadow-sm text-2xl transition scale-105';
+        } else {
+          b.className = 'food-opt-btn p-2 rounded-2xl bg-white border border-amber-200 shadow-sm text-2xl transition';
+        }
+      });
+
+      resetFood(false);
+      updateEatGuide();
+    }
+
+    function updateEatGuide() {
+      const animalNames = { bear: 'クマさん', rabbit: 'うさぎさん', hippo: 'カバさん' };
+      const guide = document.getElementById('eat-guide-message');
+      if (eatBiteProgress < 4) {
+        guide.innerText = `${animalNames[currentEatAnimal]}に ${currentFood.name}を たべさせてね！`;
+      } else {
+        guide.innerText = `ぜんぶ たべたよ！ごちそうさまでした！🎉`;
+      }
+    }
+
+    // 食べ物をリセット（おかわり）
+    function resetFood(playSound = true) {
+      eatBiteProgress = 0;
+      isChewing = false;
+      clearInterval(chewInterval);
+
+      if (playSound) {
+        SoundEffects.playSparkle();
+      }
+
+      // ゲージリセット
+      for (let i = 1; i <= 4; i++) {
+        const bite = document.getElementById(`bite-${i}`);
+        bite.className = 'w-6 h-3 rounded-full bg-amber-200 border border-amber-300 transition-colors';
+      }
+
+      // アイコンサイズリセット
+      const foodIcon = document.getElementById('active-food-icon');
+      foodIcon.style.transform = 'scale(1)';
+      foodIcon.style.opacity = '1';
+
+      // 口を普段の閉じた状態に戻す
+      const mouthContainer = document.getElementById('mouth-container');
+      mouthContainer.classList.remove('animate-chew');
+      mouthContainer.style.transform = 'scaleY(1)';
+
+      const mouthWrapper = document.getElementById('mouth-wrapper');
+      mouthWrapper.classList.add('hidden');
+
+      const mouthClosed = document.getElementById('mouth-closed');
+      mouthClosed.classList.remove('hidden');
+
+      // 目の表情を通常に戻す
+      setEyesHappy(false);
+
+      // 吹き出し非表示
+      const bubble = document.getElementById('eat-bubble');
+      bubble.classList.remove('opacity-100');
+      bubble.classList.add('hidden', 'opacity-0');
+
+      document.getElementById('eat-character').classList.remove('animate-happy');
+      document.getElementById('eat-btn-label').innerText = 'おかわりをする！';
+      updateEatGuide();
+    }
+
+    function setEyesHappy(isHappy) {
+      ['bear', 'rabbit', 'hippo'].forEach(a => {
+        const norm = document.getElementById(`${a}-eyes-normal`);
+        const happy = document.getElementById(`${a}-eyes-happy`);
+        if (norm && happy) {
+          norm.classList.toggle('hidden', isHappy);
+          happy.classList.toggle('hidden', !isHappy);
+        }
+      });
+    }
+
+    // タッチ＆長押しイベントの設定
+    function setupFoodPointerEvents() {
+      const btn = document.getElementById('food-interactive-btn');
+
+      const startEating = (e) => {
+        e.preventDefault();
+        if (eatBiteProgress >= 4) {
+          resetFood(true);
+          return;
+        }
+        if (isChewing) return;
+        isChewing = true;
+
+        // 普段の閉じた口を隠し、開いた口を表示してパクパク開始
+        document.getElementById('mouth-closed').classList.add('hidden');
+        const mouthWrapper = document.getElementById('mouth-wrapper');
+        mouthWrapper.classList.remove('hidden');
+
+        const mouthContainer = document.getElementById('mouth-container');
+        mouthContainer.classList.add('animate-chew');
+
+        // 初回のもぐもぐ
+        takeSingleBite();
+
+        // 押し続けている間、連続でもぐもぐ
+        chewInterval = setInterval(() => {
+          if (eatBiteProgress < 4) {
+            takeSingleBite();
+          } else {
+            stopEating();
+          }
+        }, 550);
+      };
+
+      const stopEating = () => {
+        if (!isChewing) return;
+        isChewing = false;
+        clearInterval(chewInterval);
+
+        const mouthContainer = document.getElementById('mouth-container');
+        mouthContainer.classList.remove('animate-chew');
+        mouthContainer.style.transform = 'scaleY(1)';
+
+        // もぐもぐ終了時は口を閉じる
+        document.getElementById('mouth-wrapper').classList.add('hidden');
+        document.getElementById('mouth-closed').classList.remove('hidden');
+      };
+
+      btn.addEventListener('pointerdown', startEating);
+      btn.addEventListener('pointerup', stopEating);
+      btn.addEventListener('pointerleave', stopEating);
+      btn.addEventListener('pointercancel', stopEating);
+    }
+
+    // 1口食べる処理
+    function takeSingleBite() {
+      if (eatBiteProgress >= 4) return;
+
+      eatBiteProgress++;
+      SoundEffects.playChew();
+
+      // ゲージ更新
+      const biteEl = document.getElementById(`bite-${eatBiteProgress}`);
+      if (biteEl) {
+        biteEl.className = 'w-6 h-3 rounded-full bg-emerald-400 border border-emerald-500 transition-colors shadow-sm';
+      }
+
+      // 食べ物が徐々に縮小（4口で完食）
+      const foodIcon = document.getElementById('active-food-icon');
+      const scaleVal = Math.max(0, 1 - eatBiteProgress * 0.25);
+      foodIcon.style.transform = `scale(${scaleVal})`;
+
+      // 一口ごとの小さなパーティクル（もぐもぐカス・星）
+      const rect = document.getElementById('mouth-wrapper').getBoundingClientRect();
+      spawnChewCrumbs(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+      // 4口完食した時の演出
+      if (eatBiteProgress === 4) {
+        foodIcon.style.opacity = '0';
+        setTimeout(() => {
+          finishMeal();
+        }, 300);
+      }
+    }
+
+    // 完食ファンファーレ
+    function finishMeal() {
+      SoundEffects.playGulp();
+      setTimeout(() => {
+        SoundEffects.playCheer();
+      }, 200);
+
+      // 食べ終わったので口を閉じた状態に
+      document.getElementById('mouth-wrapper').classList.add('hidden');
+      document.getElementById('mouth-closed').classList.remove('hidden');
+
+      // 目を笑顔に
+      setEyesHappy(true);
+
+      // キャラクターが嬉しそうに飛び跳ねる
+      const charEl = document.getElementById('eat-character');
+      charEl.classList.add('animate-happy');
+
+      // 吹き出し表示
+      const bubble = document.getElementById('eat-bubble');
+      bubble.classList.remove('hidden');
+      setTimeout(() => {
+        bubble.classList.remove('opacity-0');
+        bubble.classList.add('opacity-100');
+      }, 50);
+
+      // 画面全体に祝福パーティクル
+      const rect = charEl.getBoundingClientRect();
+      spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+      updateEatGuide();
+      document.getElementById('eat-btn-label').innerText = 'もういっぱいたべる！🍲';
+    }
+
+    // もぐもぐ中の破片エフェクト
+    function spawnChewCrumbs(x, y) {
+      const crumbs = ['✨', '⭐️', '💛', '🌸'];
+      for (let i = 0; i < 4; i++) {
+        const p = document.createElement('span');
+        p.className = 'particle text-sm';
+        p.innerText = crumbs[Math.floor(Math.random() * crumbs.length)];
+
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 25 + Math.random() * 35;
+        p.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
+        p.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
+        p.style.left = `${x}px`;
+        p.style.top = `${y}px`;
+
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 700);
+      }
+    }
+
+    // 風船ゲーム初期化
+    function initBalloonGame() {
+      balloonPopCount = 0;
+      updateBalloonCounter();
+      resetAllBalloons(false);
+    }
+
+    function updateBalloonCounter() {
+      const counter = document.getElementById('balloon-pop-counter');
+      if (counter) counter.innerText = balloonPopCount;
+    }
+
+    // すべての風船を配置
+    function resetAllBalloons(playSound = true) {
+      if (playSound) {
+        SoundEffects.playSparkle();
+      }
+      const container = document.getElementById('balloon-container');
+      container.innerHTML = '';
+
+      // 6個の風船をランダム色で配置
+      const shuffledColors = [...BALLOON_COLORS].sort(() => 0.5 - Math.random()).slice(0, 6);
+      shuffledColors.forEach((cfg, index) => {
+        const balloonEl = createBalloonElement(cfg, index);
+        container.appendChild(balloonEl);
+      });
+
+      document.getElementById('balloon-guide-message').innerText = 'ふうせんを ポンポン してみてね！';
+    }
+
+    // 風船単体のDOM要素を生成
+    function createBalloonElement(config, index) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `balloon-item relative w-[42%] h-28 sm:h-32 m-1 flex flex-col items-center justify-center cursor-pointer select-none touch-manipulation animate-balloon-spawn balloon-float-${(index % 4) + 1}`;
+      wrapper.dataset.index = index;
+
+      wrapper.innerHTML = `
+        <!-- 風船本体 -->
+        <div class="relative w-20 h-24 sm:w-24 sm:h-28 rounded-[50%_50%_50%_50%_/_45%_45%_55%_55%] bg-gradient-to-tr ${config.bg} shadow-lg ${config.shadow} flex flex-col items-center justify-center border-2 border-white/60 active:scale-90 transition-transform">
+          <!-- ハイライト光沢 -->
+          <div class="absolute top-2 left-3 w-4 h-6 rounded-full bg-white/40 rotate-[-25deg]"></div>
+          <!-- 絵柄/スタンプ -->
+          <span class="text-3xl sm:text-4xl drop-shadow-sm select-none pointer-events-none">${config.emoji}</span>
+          <!-- 結び目 -->
+          <div class="absolute -bottom-1.5 w-3 h-2 rounded-t-sm bg-amber-700/60"></div>
+          <!-- 紐 -->
+          <div class="absolute -bottom-6 w-0.5 h-5 bg-gray-400/80 rounded-full"></div>
+        </div>
+      `;
+
+      // タッチ＆クリックで破裂
+      const triggerPop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        popSingleBalloon(wrapper, config, e);
+      };
+
+      wrapper.addEventListener('pointerdown', triggerPop);
+      return wrapper;
+    }
+
+    // 風船を割る処理
+    function popSingleBalloon(wrapper, config, event) {
+      if (wrapper.classList.contains('is-popped')) return;
+      wrapper.classList.add('is-popped');
+
+      // 効果音「パチンッ！」
+      SoundEffects.playPop();
+
+      // カウント加算
+      balloonPopCount++;
+      updateBalloonCounter();
+
+      // 弾けるアニメーション
+      wrapper.classList.remove('animate-balloon-spawn', 'balloon-float-1', 'balloon-float-2', 'balloon-float-3', 'balloon-float-4');
+      wrapper.classList.add('animate-balloon-pop');
+
+      // クリック位置・風船中心のパーティクル
+      const rect = wrapper.getBoundingClientRect();
+      const clickX = rect.left + rect.width / 2;
+      const clickY = rect.top + rect.height / 2;
+      spawnBalloonPopParticles(clickX, clickY, config.emoji);
+
+      // 「ポンッ！」「パチンッ！」のポップアップ文字
+      showPopWord(clickX, clickY);
+
+      // 1.8秒後に新しい風船として自然に復活
+      setTimeout(() => {
+        respawnBalloon(wrapper);
+      }, 1800);
+
+      // 残りの風船数をチェック
+      checkRemainingBalloons();
+    }
+
+    // 風船の復活処理
+    function respawnBalloon(wrapper) {
+      if (!wrapper.parentElement) return;
+      wrapper.classList.remove('is-popped', 'animate-balloon-pop');
+
+      // 新しい色・絵柄に変化
+      const newConfig = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+      const index = parseInt(wrapper.dataset.index || '0');
+
+      wrapper.className = `balloon-item relative w-[42%] h-28 sm:h-32 m-1 flex flex-col items-center justify-center cursor-pointer select-none touch-manipulation animate-balloon-spawn balloon-float-${(index % 4) + 1}`;
+      wrapper.innerHTML = `
+        <div class="relative w-20 h-24 sm:w-24 sm:h-28 rounded-[50%_50%_50%_50%_/_45%_45%_55%_55%] bg-gradient-to-tr ${newConfig.bg} shadow-lg ${newConfig.shadow} flex flex-col items-center justify-center border-2 border-white/60 active:scale-90 transition-transform">
+          <div class="absolute top-2 left-3 w-4 h-6 rounded-full bg-white/40 rotate-[-25deg]"></div>
+          <span class="text-3xl sm:text-4xl drop-shadow-sm select-none pointer-events-none">${newConfig.emoji}</span>
+          <div class="absolute -bottom-1.5 w-3 h-2 rounded-t-sm bg-amber-700/60"></div>
+          <div class="absolute -bottom-6 w-0.5 h-5 bg-gray-400/80 rounded-full"></div>
+        </div>
+      `;
+    }
+
+    // 全て割れたかチェック
+    function checkRemainingBalloons() {
+      const container = document.getElementById('balloon-container');
+      const alive = container.querySelectorAll('.balloon-item:not(.is-popped)');
+      if (alive.length === 0) {
+        // 全部割った！
+        setTimeout(() => {
+          SoundEffects.playCheer();
+          document.getElementById('balloon-guide-message').innerText = 'すごーい！ぜんぶ われたよ！🎉';
+          // 画面全体に祝福パーティクル
+          spawnParticles(window.innerWidth / 2, window.innerHeight / 2);
+        }, 200);
+      }
+    }
+
+    // ポップテキストの表示
+    function showPopWord(x, y) {
+      const words = ['ポンッ！', 'パチンッ！', 'ばぁ！', 'きら〜ん✨'];
+      const word = words[Math.floor(Math.random() * words.length)];
+      const label = document.createElement('div');
+      label.className = 'fixed pointer-events-none font-black text-rose-500 text-lg sm:text-xl drop-shadow-md z-50 transition-all duration-500';
+      label.innerText = word;
+      label.style.left = `${x - 30}px`;
+      label.style.top = `${y - 20}px`;
+      document.body.appendChild(label);
+
+      requestAnimationFrame(() => {
+        label.style.transform = 'translateY(-35px) scale(1.2)';
+        label.style.opacity = '0';
+      });
+
+      setTimeout(() => label.remove(), 550);
+    }
+
+    // 風船破裂時の破片・紙吹雪
+    function spawnBalloonPopParticles(x, y, emoji) {
+      const symbols = [emoji, '💥', '✨', '🎈', '⭐', '💫'];
+      const count = 10;
+
+      for (let i = 0; i < count; i++) {
+        const particle = document.createElement('span');
+        particle.className = 'particle text-xl sm:text-2xl';
+        particle.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+
+        const angle = (Math.PI * 2 / count) * i + (Math.random() * 0.4);
+        const distance = 50 + Math.random() * 70;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+
+        particle.style.setProperty('--tx', `${tx}px`);
+        particle.style.setProperty('--ty', `${ty}px`);
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 900);
+      }
+    }
+
+    function showSimpleToast(msg) {
+      const toast = document.getElementById('simple-toast');
+      toast.innerText = msg;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2200);
+    }
+
+    function changeTheme(theme) {
+      if (isOpen) {
+        resetDoor(false);
+      }
+      currentTheme = theme;
+
+      // ボタンのスタイル更新
+      ['house', 'grass', 'curtain'].forEach(t => {
+        const btn = document.getElementById(`mode-${t}`);
+        if (t === theme) {
+          btn.className = 'px-2.5 py-1 rounded-xl bg-white text-amber-900 shadow-sm transition';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-xl text-amber-800 hover:bg-white/60 transition';
+        }
+      });
+
+      // 表示切り替え
+      document.getElementById('theme-house').classList.toggle('hidden', theme !== 'house');
+      document.getElementById('theme-grass').classList.toggle('hidden', theme !== 'grass');
+      document.getElementById('theme-curtain').classList.toggle('hidden', theme !== 'curtain');
+
+      updateGuideText();
+      SoundEffects.playKnock();
+    }
+
+    function updateGuideText() {
+      const guide = document.getElementById('guide-message');
+      const hint = document.getElementById('hint-action-text');
+
+      if (!isOpen) {
+        if (currentTheme === 'house') {
+          guide.innerText = 'とびらを とんとん してね！';
+        } else if (currentTheme === 'grass') {
+          guide.innerText = 'くさむらを タッチしてみてね！';
+        } else {
+          guide.innerText = 'カーテンを タッチして あけてね！';
+        }
+        hint.innerText = 'ここを タップしてね！';
+      } else {
+        guide.innerText = 'だれが でてきたかな？✨';
+        hint.innerText = 'タッチして つぎのおともだちへ！';
+      }
+    }
+
+    function handleStageClick(event) {
+      if (!isOpen) {
+        openDoor(event);
+      } else {
+        // 開いているときにタップしたらキャラクターが喜んでピョンと跳ねて次のキャラクターへ
+        SoundEffects.playSparkle();
+        const charIcon = document.getElementById('char-icon');
+        charIcon.classList.remove('animate-pop');
+        void charIcon.offsetWidth;
+        charIcon.classList.add('animate-pop');
+
+        const clickX = event.clientX || window.innerWidth / 2;
+        const clickY = event.clientY || window.innerHeight / 2;
+        spawnParticles(clickX, clickY);
+
+        setTimeout(() => {
+          resetOrNextDoor();
+        }, 550);
+      }
+    }
+
+    function openDoor(event) {
+      if (isOpen) return;
+      isOpen = true;
+
+      // 効果音「コンコン」からの「ばぁ〜！」
+      SoundEffects.playKnock();
+      setTimeout(() => {
+        SoundEffects.playPeekaboo();
+        SoundEffects.playSparkle();
+      }, 180);
+
+      // キャラクター抽選（直前と被らないように選出）
+      let nextIndex;
+      do {
+        nextIndex = Math.floor(Math.random() * CHARACTERS.length);
+      } while (nextIndex === currentCharIndex && CHARACTERS.length > 1);
+      currentCharIndex = nextIndex;
+
+      const char = CHARACTERS[currentCharIndex];
+      const charIcon = document.getElementById('char-icon');
+      const charBubble = document.getElementById('char-bubble');
+      const charName = document.getElementById('char-name');
+
+      charIcon.innerText = char.emoji;
+      charBubble.innerText = char.soundText;
+      charName.innerText = char.name;
+
+      // アニメーション実行
+      if (currentTheme === 'house') {
+        document.getElementById('door-l').classList.add('door-open-left');
+        document.getElementById('door-r').classList.add('door-open-right');
+      } else if (currentTheme === 'grass') {
+        document.getElementById('grass-l').classList.add('grass-open-left');
+        document.getElementById('grass-r').classList.add('grass-open-right');
+      } else if (currentTheme === 'curtain') {
+        document.getElementById('curtain-l').classList.add('curtain-open-left');
+        document.getElementById('curtain-r').classList.add('curtain-open-right');
+      }
+
+      // 中身の飛び出し演出（少し扉が開いたタイミングに合わせてダイナミックに登場）
+      setTimeout(() => {
+        charIcon.classList.remove('opacity-0', 'scale-50');
+        charIcon.classList.add('opacity-100');
+        charIcon.classList.remove('animate-pop');
+        void charIcon.offsetWidth; // リフロー
+        charIcon.classList.add('animate-pop');
+
+        charBubble.classList.remove('opacity-0');
+        charBubble.classList.add('opacity-100');
+        charName.classList.remove('opacity-0');
+        charName.classList.add('opacity-100');
+      }, 120);
+
+      // パーティクル発生
+      const rect = document.getElementById('secret-content').getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      spawnParticles(centerX, centerY);
+
+      // UI表示更新
+      updateGuideText();
+      document.getElementById('btn-label').innerText = 'つぎの おともだち！🚪';
+    }
+
+    function resetDoor(playSound = true) {
+      if (!isOpen) return;
+      isOpen = false;
+
+      if (playSound) {
+        SoundEffects.playClose();
+      }
+
+      // ドアを閉じる
+      document.getElementById('door-l').classList.remove('door-open-left');
+      document.getElementById('door-r').classList.remove('door-open-right');
+
+      document.getElementById('grass-l').classList.remove('grass-open-left');
+      document.getElementById('grass-r').classList.remove('grass-open-right');
+
+      document.getElementById('curtain-l').classList.remove('curtain-open-left');
+      document.getElementById('curtain-r').classList.remove('curtain-open-right');
+
+      // キャラクタを非表示化
+      const charIcon = document.getElementById('char-icon');
+      charIcon.classList.remove('animate-pop', 'opacity-100');
+      charIcon.classList.add('opacity-0', 'scale-50');
+
+      document.getElementById('char-bubble').classList.remove('opacity-100');
+      document.getElementById('char-bubble').classList.add('opacity-0');
+      document.getElementById('char-name').classList.remove('opacity-100');
+      document.getElementById('char-name').classList.add('opacity-0');
+
+      updateGuideText();
+      document.getElementById('btn-label').innerText = 'もう１かい あける！';
+    }
+
+    function resetOrNextDoor(e) {
+      if (e) e.stopPropagation();
+      if (isOpen) {
+        resetDoor(true);
+      } else {
+        openDoor();
+      }
+    }
+
+    function spawnParticles(x, y) {
+      const symbols = ['⭐', '✨', '🌸', '💛', '🎉', '🌟'];
+      const count = 14;
+
+      for (let i = 0; i < count; i++) {
+        const particle = document.createElement('span');
+        particle.className = 'particle text-2xl';
+        particle.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+
+        const angle = (Math.PI * 2 / count) * i + (Math.random() * 0.4);
+        const distance = 80 + Math.random() * 90;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+
+        particle.style.setProperty('--tx', `${tx}px`);
+        particle.style.setProperty('--ty', `${ty}px`);
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+
+        document.body.appendChild(particle);
+
+        setTimeout(() => {
+          particle.remove();
+        }, 900);
+      }
+    }
+
+    // 初期化
+    window.addEventListener('DOMContentLoaded', () => {
+      // ユーザーの最初のタッチでオーディオコンテキストをアクティブ化
+      const unlockAudio = () => {
+        SoundEffects.init();
+        document.removeEventListener('pointerdown', unlockAudio);
+      };
+      document.addEventListener('pointerdown', unlockAudio);
+    });
+  </script>
+</body>
+</html>
