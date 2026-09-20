@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>どっちがおおい？（かずくらべ） - とうちゃんのゲームラボ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body {
+      background: #fdfaf6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Maru Gothic ProN", sans-serif;
+      min-height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px max(12px, env(safe-area-inset-bottom));
+      touch-action: none;
+      overflow: hidden;
+    }
+    header {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      color: #636e72;
+      font-size: 0.82rem;
+      padding: 5px 12px;
+      border-radius: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      font-weight: 500;
+    }
+    .stage-badge {
+      background: linear-gradient(135deg, #ff9f43, #ee5253);
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.8rem;
+      padding: 5px 12px;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(238,82,83,0.3);
+      white-space: nowrap;
+    }
+    .msg-banner {
+      background: #ffffff;
+      padding: 8px 18px;
+      border-radius: 20px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      margin: 4px 0;
+      text-align: center;
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: #2d3436;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-shrink: 0;
+      min-height: 38px;
+    }
+    .canvas-wrapper {
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 28px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    #gameCanvas {
+      display: block;
+      border-radius: 20px;
+      background: #fbf9f5;
+      width: min(340px, 88vw, 50vh);
+      height: min(400px, 88vw * 1.18, 58vh);
+      touch-action: none;
+      cursor: pointer;
+    }
+    .bottom-hint {
+      font-size: 0.82rem;
+      color: #8395a7;
+      font-weight: bold;
+      text-align: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    /* クリアモーダル */
+    .clear-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .clear-box {
+      background: #ffffff;
+      padding: 24px 20px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      max-width: 310px;
+      width: 88%;
+    }
+    .clear-emoji {
+      font-size: 3.8rem;
+      margin-bottom: 6px;
+      animation: pop 0.4s ease-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      80% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    /* はなまるスタンプ特大アニメーション */
+    .hanamaru-svg {
+      width: 130px;
+      height: 130px;
+      animation: stampPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      filter: drop-shadow(0 6px 14px rgba(255, 71, 87, 0.4));
+    }
+    @keyframes stampPop {
+      0% { transform: scale(3.2) rotate(-24deg); opacity: 0; }
+      65% { transform: scale(0.92) rotate(4deg); opacity: 1; }
+      85% { transform: scale(1.08) rotate(-2deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .clear-title {
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: #2d3436;
+      margin-bottom: 6px;
+    }
+    .clear-desc {
+      color: #636e72;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    .next-btn {
+      margin-top: 16px;
+      padding: 12px 22px;
+      background: linear-gradient(135deg, #ff9f43, #ee5253);
+      border: none;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: bold;
+      border-radius: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(238,82,83,0.35);
+      width: 100%;
+      touch-action: manipulation;
+    }
+    .next-btn:active {
+      transform: scale(0.95);
+    }
+    .restart-link {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <header>
+    <a href="index.html" class="back-btn">⬅ メニュー</a>
+    <div class="stage-badge" id="stageBadge">ステージ 1 / 10</div>
+  </header>
+
+  <!-- 指示バナー -->
+  <div class="msg-banner" id="msgBanner">
+    <span>🍎</span> <span id="msgText">フルーツが おおいほうを タッチしてね！</span>
+  </div>
+
+  <!-- ゲームキャンバス -->
+  <div class="canvas-wrapper">
+    <canvas id="gameCanvas" width="340" height="400"></canvas>
+  </div>
+
+  <div class="bottom-hint">
+    左右のおさらを タッチしてみてね！👆
+  </div>
+
+  <!-- ステージクリアモーダル -->
+  <div class="clear-modal" id="clearModal">
+    <div class="clear-box">
+      <div class="clear-emoji" id="clearEmoji">🎉</div>
+      <div class="clear-title" id="clearTitle">せいかい！すごい！</div>
+      <p class="clear-desc" id="clearDesc">つぎのステージへ すすもう！</p>
+      <button class="next-btn" id="nextBtn" onclick="nextStage()">つぎの ステージへ！</button>
+      <div><span class="restart-link" onclick="restartFromBeginning()">ステージ1からやりなおす</span></div>
+    </div>
+  </div>
+
+  <script>
+    // 10問すべて異なるフルーツのデータベース
+    const FRUIT_ITEMS = [
+      { name: 'いちご', emoji: '🍓', color: '#ff6b6b' },
+      { name: 'バナナ', emoji: '🍌', color: '#feca57' },
+      { name: 'りんご', emoji: '🍎', color: '#ee5253' },
+      { name: 'みかん', emoji: '🍊', color: '#ff9f43' },
+      { name: 'ぶどう', emoji: '🍇', color: '#a55eea' },
+      { name: 'すいか', emoji: '🍉', color: '#10ac84' },
+      { name: 'さくらんぼ', emoji: '🍒', color: '#ff4757' },
+      { name: 'もも', emoji: '🍑', color: '#ff9ff3' },
+      { name: 'パイン', emoji: '🍍', color: '#fbc531' },
+      { name: 'キウイ', emoji: '🥝', color: '#4cd137' }
+    ];
+
+    // 全10ステージの難易度設計（2問ごとにレベルアップ）
+    // countA, countB は左右どちらかに割り当てられる
+    const STAGE_CONFIGS = [
+      { counts: [2, 5], label: 'やさしい' },   // Stage 1: 差 3
+      { counts: [1, 4], label: 'やさしい' },   // Stage 2: 差 3
+      { counts: [3, 6], label: 'ふつう' },     // Stage 3: 差 3
+      { counts: [4, 6], label: 'ふつう' },     // Stage 4: 差 2
+      { counts: [3, 5], label: 'ふつう' },     // Stage 5: 差 2
+      { counts: [5, 7], label: 'すこしむずかしい' }, // Stage 6: 差 2
+      { counts: [6, 8], label: 'すこしむずかしい' }, // Stage 7: 差 2
+      { counts: [5, 6], label: 'むずかしい' }, // Stage 8: 差 1
+      { counts: [7, 8], label: 'むずかしい' }, // Stage 9: 差 1
+      { counts: [8, 9], label: 'たつじん' }    // Stage 10: 差 1
+    ];
+
+    const TOTAL_STAGES = 10;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const stageBadge = document.getElementById('stageBadge');
+    const msgText = document.getElementById('msgText');
+
+    let currentStage = 1;
+    let shuffledFruits = [];
+    let currentFruit = null;
+    let leftCount = 0;
+    let rightCount = 0;
+    let leftFruits = [];
+    let rightFruits = [];
+    let correctSide = 'left'; // 'left' or 'right'
+    let isSolved = false;
+    let platePress = { left: 0, right: 0 };
+    let particles = [];
+    let animTime = 0;
+
+    let audioCtx = null;
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playTone(freq, duration = 0.2, type = 'triangle') {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.01, now);
+        gain.gain.linearRampToValueAtTime(0.24, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function playWrongSound() {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.005, now + 0.2);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.2);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function playClearSound() {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        const chords = [523.25, 659.25, 783.99, 1046.5]; // ド・ミ・ソ・高ド
+        chords.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+          gain.gain.setValueAtTime(0.22, now + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + idx * 0.09 + 0.28);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.09);
+          osc.stop(now + idx * 0.09 + 0.28);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 全10問クリア用の豪華ファンファーレ
+    function playGrandFanfare() {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        // ド・ミ・ソ・高ド・高ミ・高ド（豪華メロディ）
+        const notes = [
+          { f: 523.25, t: 0.00, d: 0.16 }, // ド
+          { f: 659.25, t: 0.14, d: 0.16 }, // ミ
+          { f: 783.99, t: 0.28, d: 0.16 }, // ソ
+          { f: 1046.50, t: 0.44, d: 0.38 }, // 高ド
+          { f: 880.00, t: 0.68, d: 0.18 }, // ラ
+          { f: 1046.50, t: 0.88, d: 0.65 }  // 高ド〜！
+        ];
+        notes.forEach(n => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(n.f, now + n.t);
+          gain.gain.setValueAtTime(0.24, now + n.t);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + n.t + n.d);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + n.t);
+          osc.stop(now + n.t + n.d);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function spawnParticles(cx, cy, color) {
+      for (let i = 0; i < 18; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4.5 + 1.5;
+        particles.push({
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1.0,
+          color: color,
+          size: Math.random() * 4 + 3
+        });
+      }
+    }
+
+    // 全問クリア時の豪華紙吹雪（コンフェッティ）
+    function spawnConfetti() {
+      const colors = ['#ff4757', '#ffa502', '#2ed573', '#1e90ff', '#9b59b6', '#ff6b81'];
+      for (let i = 0; i < 45; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * (canvas.height * 0.5);
+        particles.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 4.5,
+          vy: Math.random() * 3 + 1.5,
+          life: 1.6,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          size: Math.random() * 5 + 4,
+          isConfetti: true,
+          rot: Math.random() * Math.PI,
+          rotSpeed: (Math.random() - 0.5) * 0.18
+        });
+      }
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    // お皿の座標情報
+    function getPlateRects() {
+      const margin = 12;
+      const topY = 60;
+      const plateH = 280;
+      const plateW = (canvas.width - margin * 3) / 2;
+
+      return {
+        left: {
+          x: margin,
+          y: topY,
+          w: plateW,
+          h: plateH,
+          cx: margin + plateW / 2,
+          cy: topY + plateH / 2
+        },
+        right: {
+          x: margin * 2 + plateW,
+          y: topY,
+          w: plateW,
+          h: plateH,
+          cx: margin * 2 + plateW + plateW / 2,
+          cy: topY + plateH / 2
+        }
+      };
+    }
+
+    // 重なりを避けてお皿の中にフルーツを配置
+    function generateFruitPositions(plate, count) {
+      const positions = [];
+      const paddingX = 22;
+      const paddingY = 28;
+      const fruitSize = count > 6 ? 34 : (count > 4 ? 40 : 46);
+      const minDistance = fruitSize * 0.85;
+
+      for (let i = 0; i < count; i++) {
+        let x, y, overlap;
+        let attempts = 0;
+        do {
+          overlap = false;
+          x = plate.x + paddingX + Math.random() * (plate.w - paddingX * 2 - fruitSize);
+          y = plate.y + paddingY + Math.random() * (plate.h - paddingY * 2 - fruitSize);
+
+          for (const pos of positions) {
+            const dist = Math.hypot(pos.x - x, pos.y - y);
+            if (dist < minDistance) {
+              overlap = true;
+              break;
+            }
+          }
+          attempts++;
+        } while (overlap && attempts < 150);
+
+        positions.push({
+          x: x,
+          y: y,
+          size: fruitSize,
+          floatOffset: Math.random() * Math.PI * 2,
+          jumpY: 0
+        });
+      }
+      return positions;
+    }
+
+    function initFruitsPool() {
+      shuffledFruits = shuffleArray(FRUIT_ITEMS);
+    }
+
+    function initStage(stage) {
+      currentStage = stage;
+      isSolved = false;
+      platePress = { left: 0, right: 0 };
+      particles = [];
+
+      stageBadge.textContent = `ステージ ${currentStage} / ${TOTAL_STAGES}`;
+      document.getElementById('clearModal').style.display = 'none';
+
+      // 10問それぞれ異なるフルーツを順番に取得
+      currentFruit = shuffledFruits[currentStage - 1];
+
+      // ステージ難易度に応じた個数の割り当て
+      const config = STAGE_CONFIGS[currentStage - 1];
+      const isLeftBigger = Math.random() < 0.5;
+
+      if (isLeftBigger) {
+        leftCount = Math.max(config.counts[0], config.counts[1]);
+        rightCount = Math.min(config.counts[0], config.counts[1]);
+        correctSide = 'left';
+      } else {
+        leftCount = Math.min(config.counts[0], config.counts[1]);
+        rightCount = Math.max(config.counts[0], config.counts[1]);
+        correctSide = 'right';
+      }
+
+      const plates = getPlateRects();
+      leftFruits = generateFruitPositions(plates.left, leftCount);
+      rightFruits = generateFruitPositions(plates.right, rightCount);
+
+      msgText.textContent = `${currentFruit.emoji} ${currentFruit.name}が おおいほうを えらんでね！`;
+    }
+
+    function handlePlateTap(side) {
+      if (isSolved) return;
+      ensureAudioContext();
+
+      platePress[side] = 1.0;
+      const plates = getPlateRects();
+      const targetPlate = plates[side];
+
+      if (side === correctSide) {
+        // 正解！
+        isSolved = true;
+        playTone(587.33, 0.25, 'triangle'); // レ
+        setTimeout(() => playTone(880.00, 0.35, 'triangle'), 120); // ラ
+        spawnParticles(targetPlate.cx, targetPlate.cy, currentFruit.color);
+
+        // フルーツを一斉にぴょんと跳ねさせる
+        const winFruits = side === 'left' ? leftFruits : rightFruits;
+        winFruits.forEach(f => {
+          f.jumpY = -22;
+        });
+
+        const maxC = Math.max(leftCount, rightCount);
+        const minC = Math.min(leftCount, rightCount);
+        msgText.textContent = `🎉 せいかい！ (${maxC}こ と ${minC}こ)`;
+
+        playClearSound();
+        setTimeout(showClearModal, 1000);
+      } else {
+        // お手つき
+        playWrongSound();
+        spawnParticles(targetPlate.cx, targetPlate.cy, '#e53e3e');
+        msgText.textContent = 'あれれ？ もういっかい よく みてみよう！';
+      }
+    }
+
+    function showClearModal() {
+      const modal = document.getElementById('clearModal');
+      const title = document.getElementById('clearTitle');
+      const desc = document.getElementById('clearDesc');
+      const emoji = document.getElementById('clearEmoji');
+      const nextBtn = document.getElementById('nextBtn');
+
+      if (currentStage >= TOTAL_STAGES) {
+        // 特大のはなまるSVGアニメーション
+        emoji.innerHTML = `
+          <svg class="hanamaru-svg" viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 8枚の花びらループ（伝統的な教育用はなまる） -->
+            <path d="M65,8 C74,8 81,17 86,13 C94,7 104,13 105,23 C113,23 118,32 115,40 C123,46 122,58 115,64 C122,70 123,82 115,88 C118,96 113,105 105,105 C104,115 94,121 86,115 C81,111 74,120 65,120 C56,120 49,111 44,115 C36,121 26,115 25,105 C17,105 12,96 15,88 C8,82 7,70 15,64 C7,58 8,46 15,40 C12,32 17,23 25,23 C26,13 36,7 44,13 C49,17 56,8 65,8 Z" 
+                  stroke="#ff4757" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="rgba(255, 71, 87, 0.08)"/>
+            <!-- 内側の二重丸 -->
+            <circle cx="65" cy="64" r="35" stroke="#ff4757" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="65" cy="64" r="23" stroke="#ff4757" stroke-width="4.5" stroke-linecap="round"/>
+            <!-- 中央の文字 -->
+            <text x="65" y="61" text-anchor="middle" font-size="9.5" font-weight="900" fill="#ff4757" font-family="sans-serif">たいへん</text>
+            <text x="65" y="73" text-anchor="middle" font-size="9" font-weight="900" fill="#ff4757" font-family="sans-serif">よくできました</text>
+          </svg>
+        `;
+        title.innerHTML = '💮 たいへんよくできました！ 💮';
+        desc.innerHTML = `全10問ぜんぶ 大せいかい！<br><strong style="color:#ee5253; font-size:1.18rem;">【かずくらべマスター】</strong>のかんせい！<br>おおきな はなまるを プレゼント！🎉`;
+        nextBtn.textContent = '最初からもういちど遊ぶ';
+        playGrandFanfare();
+        spawnConfetti();
+      } else {
+        emoji.innerHTML = '🎉';
+        title.textContent = `ステージ ${currentStage} クリア！`;
+        nextBtn.textContent = 'つぎの ステージへ！';
+
+        const isLevelUp = (currentStage % 2 === 0);
+        if (isLevelUp) {
+          emoji.innerHTML = '⭐';
+          desc.innerHTML = `2回クリア たっせい！つぎからは<br><strong style="color:#ee5253; font-size:1.15rem;">【すこし数の差がちいさく】</strong>なるよ！`;
+        } else {
+          emoji.innerHTML = '🎉';
+          desc.innerHTML = `「${currentFruit.name}」のかずくらべ ばっちり！<br>あと1回クリアで レベルアップ！`;
+        }
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function nextStage() {
+      if (currentStage >= TOTAL_STAGES) {
+        restartFromBeginning();
+      } else {
+        initStage(currentStage + 1);
+      }
+    }
+
+    function restartFromBeginning() {
+      initFruitsPool();
+      initStage(1);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      animTime += 0.05;
+
+      const plates = getPlateRects();
+
+      // タイトル上部バナー
+      ctx.fillStyle = '#636e72';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`どっちが おおいかな？`, canvas.width / 2, 28);
+
+      // 左右のお皿（プレート）を描画
+      ['left', 'right'].forEach(side => {
+        const plate = plates[side];
+        const isPress = platePress[side] > 0.01;
+        const scale = isPress ? 0.94 : 1.0;
+        const isWinner = isSolved && side === correctSide;
+
+        ctx.save();
+        ctx.translate(plate.cx, plate.cy);
+        ctx.scale(scale, scale);
+        ctx.translate(-plate.cx, -plate.cy);
+
+        // 影
+        ctx.shadowColor = isWinner ? 'rgba(238, 82, 83, 0.25)' : 'rgba(0,0,0,0.06)';
+        ctx.shadowBlur = isWinner ? 18 : 10;
+        ctx.shadowOffsetY = 4;
+
+        // お皿の背景
+        roundRect(ctx, plate.x, plate.y, plate.w, plate.h, 24);
+        ctx.fillStyle = isWinner ? '#fff5f5' : '#ffffff';
+        ctx.fill();
+
+        // 枠線
+        roundRect(ctx, plate.x, plate.y, plate.w, plate.h, 24);
+        ctx.strokeStyle = isWinner ? '#ee5253' : '#f1f2f6';
+        ctx.lineWidth = isWinner ? 4 : 2.5;
+        ctx.stroke();
+
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // 内側のお皿リム（立体感）
+        roundRect(ctx, plate.x + 8, plate.y + 8, plate.w - 16, plate.h - 16, 18);
+        ctx.strokeStyle = '#f8f9fa';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // フルーツの描画
+        const fruits = side === 'left' ? leftFruits : rightFruits;
+        fruits.forEach(f => {
+          const floatY = Math.sin(animTime + f.floatOffset) * 2.5 + f.jumpY;
+          ctx.font = `${f.size}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(currentFruit.emoji, f.x + f.size / 2, f.y + f.size / 2 + floatY);
+
+          // ジャンプ減衰
+          if (f.jumpY < 0) {
+            f.jumpY += 1.4;
+            if (f.jumpY > 0) f.jumpY = 0;
+          }
+        });
+
+        // 正解後の「かず」バッジ表示（答え合わせ）
+        if (isSolved) {
+          const count = side === 'left' ? leftCount : rightCount;
+          const badgeY = plate.y + plate.h - 38;
+          const badgeW = 76;
+          const badgeH = 34;
+          const badgeX = plate.cx - badgeW / 2;
+
+          ctx.save();
+          roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 17);
+          ctx.fillStyle = isWinner ? '#ee5253' : '#b2bec3';
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 16px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`${count} こ`, plate.cx, badgeY + badgeH / 2);
+          ctx.restore();
+        }
+
+        ctx.restore();
+
+        // 押し込みアニメーション減衰
+        if (platePress[side] > 0) {
+          platePress[side] -= 0.1;
+          if (platePress[side] < 0) platePress[side] = 0;
+        }
+      });
+
+      // 中央の「VS」マーク（可愛らしい雲風バッジ）
+      if (!isSolved) {
+        ctx.save();
+        const vsSize = 34;
+        const vsY = plates.left.cy;
+        ctx.fillStyle = '#f1f2f6';
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, vsY, vsSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#a4b0be';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('VS', canvas.width / 2, vsY + 1);
+        ctx.restore();
+      }
+
+      // パーティクル描画
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.032;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+
+        if (p.isConfetti) {
+          // 紙吹雪（ひらひら回転しながら落ちる長方形）
+          p.rot += p.rotSpeed;
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillRect(-p.size / 2, -p.size * 0.35, p.size, p.size * 0.7);
+        } else {
+          // 丸パーティクル
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    function handleCanvasPointer(e) {
+      if (isSolved) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      const plates = getPlateRects();
+
+      // 左プレート判定
+      if (x >= plates.left.x && x <= plates.left.x + plates.left.w &&
+          y >= plates.left.y && y <= plates.left.y + plates.left.h) {
+        handlePlateTap('left');
+        return;
+      }
+
+      // 右プレート判定
+      if (x >= plates.right.x && x <= plates.right.x + plates.right.w &&
+          y >= plates.right.y && y <= plates.right.y + plates.right.h) {
+        handlePlateTap('right');
+        return;
+      }
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      handleCanvasPointer(e);
+    });
+
+    window.addEventListener('load', () => {
+      initFruitsPool();
+      initStage(1);
+      draw();
+    });
+  </script>
+</body>
+</html>
