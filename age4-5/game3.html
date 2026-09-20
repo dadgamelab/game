@@ -2,779 +2,619 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>トイレット・バスターズ！ - 降ってくるうんこを撃ち落とせ！</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>おとあてピコピコ！ - とうちゃんのゲームラボ</title>
   <style>
     * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
       user-select: none;
       -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
     body {
-      background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
-      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: #fdfaf6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px max(12px, env(safe-area-inset-bottom));
       touch-action: none;
       overflow: hidden;
     }
-    .game-shadow {
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.25);
+    header {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
     }
-    .glass-card {
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(12px);
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      color: #636e72;
+      font-size: 0.82rem;
+      padding: 5px 12px;
+      border-radius: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      font-weight: 500;
     }
-    @keyframes float-gun {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-4px); }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .gun-floating {
-      animation: float-gun 1.5s ease-in-out infinite;
+    .stage-badge {
+      background: linear-gradient(135deg, #a55eea, #8854d0);
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.8rem;
+      padding: 5px 12px;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(165,94,234,0.3);
+      white-space: nowrap;
+    }
+    .msg-banner {
+      background: #ffffff;
+      padding: 8px 18px;
+      border-radius: 20px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      margin: 4px 0;
+      text-align: center;
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: #2d3436;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-shrink: 0;
+      min-height: 38px;
+    }
+    .canvas-wrapper {
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 28px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    #gameCanvas {
+      display: block;
+      border-radius: 20px;
+      background: #faf8f5;
+      width: min(330px, 86vw, 44vh);
+      height: min(330px, 86vw, 44vh);
+      touch-action: none;
+      cursor: pointer;
+    }
+    .bottom-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .repeat-btn {
+      background: #ffffff;
+      border: 2px solid #e0e7ff;
+      color: #4f46e5;
+      font-size: 0.88rem;
+      font-weight: bold;
+      padding: 8px 18px;
+      border-radius: 22px;
+      box-shadow: 0 2px 8px rgba(79,70,229,0.12);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease, background 0.15s ease;
+      touch-action: manipulation;
+    }
+    .repeat-btn:active {
+      transform: scale(0.93);
+      background: #f5f7ff;
+    }
+    .repeat-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+    /* クリアモーダル */
+    .clear-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .clear-box {
+      background: #ffffff;
+      padding: 24px 20px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      max-width: 310px;
+      width: 88%;
+    }
+    .clear-emoji {
+      font-size: 3.8rem;
+      margin-bottom: 6px;
+      animation: pop 0.4s ease-out;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      80% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    .clear-title {
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: #2d3436;
+      margin-bottom: 6px;
+    }
+    .clear-desc {
+      color: #636e72;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    .next-btn {
+      margin-top: 16px;
+      padding: 12px 22px;
+      background: linear-gradient(135deg, #a55eea, #8854d0);
+      border: none;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: bold;
+      border-radius: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(165,94,234,0.35);
+      width: 100%;
+      touch-action: manipulation;
+    }
+    .next-btn:active {
+      transform: scale(0.95);
+    }
+    .restart-link {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      text-decoration: underline;
+      cursor: pointer;
     }
   </style>
 </head>
-<body class="h-screen w-screen flex flex-col items-center justify-center p-2 sm:p-4 text-white">
+<body>
 
-  <div class="relative w-full max-w-md h-full max-h-[760px] flex flex-col rounded-3xl overflow-hidden border-2 border-sky-500/40 game-shadow bg-slate-900">
-    
-    <!-- Top HUD Header -->
-    <header class="w-full flex items-center justify-between px-4 py-2.5 bg-slate-950/90 border-b border-sky-500/30 z-10 shadow-md">
-      <div class="flex flex-col">
-        <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider">撃破スコア</span>
-        <div class="flex items-center space-x-1.5">
-          <span class="text-xl font-black text-amber-400" id="hud-score">0</span>
-          <span class="text-[11px] text-slate-400" id="hud-combo-badge"></span>
-        </div>
-      </div>
-
-      <div class="flex flex-col items-center">
-        <span class="text-[10px] text-slate-400 font-semibold">難易度設定</span>
-        <div class="flex items-center space-x-1 mt-0.5">
-          <span id="hud-speed-badge" class="px-2 py-0.5 rounded-full bg-sky-950 border border-sky-400/40 text-[9px] font-bold text-sky-300">速:ふつう</span>
-          <span id="hud-amount-badge" class="px-2 py-0.5 rounded-full bg-amber-950 border border-amber-400/40 text-[9px] font-bold text-amber-300">量:ふつう</span>
-        </div>
-      </div>
-
-      <div class="flex flex-col items-end">
-        <span class="text-[10px] text-rose-400 font-bold uppercase tracking-wider">防衛ラインHP</span>
-        <div class="flex items-center space-x-1 text-lg" id="hud-hearts">
-          <span>❤️</span><span>❤️</span><span>❤️</span>
-        </div>
-      </div>
-    </header>
-
-    <div class="relative flex-1 w-full h-full overflow-hidden bg-gradient-to-b from-slate-950 via-indigo-950 to-sky-950">
-      <canvas id="gameCanvas" class="w-full h-full block cursor-crosshair"></canvas>
-
-      <!-- Start Overlay Screen -->
-      <div id="screen-start" class="absolute inset-0 flex flex-col items-center justify-center p-5 glass-card z-20 transition-all overflow-y-auto">
-        <div class="text-5xl mb-1 animate-bounce">🚽💥💩</div>
-        <h1 class="text-2xl sm:text-3xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-teal-300 to-amber-300 text-center mb-1 drop-shadow">
-          トイレット・バスターズ！
-        </h1>
-        <p class="text-slate-300 text-[11px] text-center mb-3 leading-relaxed max-w-xs">
-          空からうんこが落下中！<br>
-          <span class="text-sky-300 font-bold">水鉄砲</span>で撃ち落とせ！
-        </p>
-
-        <!-- 設定パネル（速度 ＆ 量） -->
-        <div class="w-full max-w-xs bg-slate-900/90 border border-sky-500/40 rounded-2xl p-3 mb-4 space-y-3 shadow-inner text-xs">
-          <!-- 落下スピード選択 -->
-          <div>
-            <div class="text-[11px] font-bold text-sky-300 flex items-center justify-between mb-1.5">
-              <span>⚡ 落下スピード</span>
-              <span id="label-speed" class="text-slate-300 font-normal">ふつう (1.0x)</span>
-            </div>
-            <div class="grid grid-cols-3 gap-1.5" id="group-speed">
-              <button type="button" data-speed="0.7" class="btn-speed px-1.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800/90 font-bold hover:bg-slate-700 transition text-[10px] flex flex-col items-center">
-                <span>🐢 のんびり</span>
-                <span class="text-[8px] font-normal text-slate-400">0.7倍</span>
-              </button>
-              <button type="button" data-speed="1.0" class="btn-speed active px-1.5 py-1.5 rounded-xl border-2 border-sky-400 bg-sky-500/20 text-sky-300 font-bold transition text-[10px] flex flex-col items-center">
-                <span>🏃 ふつう</span>
-                <span class="text-[8px] font-normal text-sky-200">1.0倍</span>
-              </button>
-              <button type="button" data-speed="1.55" class="btn-speed px-1.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800/90 font-bold hover:bg-slate-700 transition text-[10px] flex flex-col items-center">
-                <span>⚡ 激ムズ</span>
-                <span class="text-[8px] font-normal text-rose-400">1.55倍</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- 落下量（出現頻度）選択 -->
-          <div>
-            <div class="text-[11px] font-bold text-amber-300 flex items-center justify-between mb-1.5">
-              <span>💩 うんこの量</span>
-              <span id="label-amount" class="text-slate-300 font-normal">ふつう (適量)</span>
-            </div>
-            <div class="grid grid-cols-3 gap-1.5" id="group-amount">
-              <button type="button" data-amount="0.6" class="btn-amount px-1.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800/90 font-bold hover:bg-slate-700 transition text-[10px] flex flex-col items-center">
-                <span>🌱 すくない</span>
-                <span class="text-[8px] font-normal text-slate-400">ゆったり</span>
-              </button>
-              <button type="button" data-amount="1.0" class="btn-amount active px-1.5 py-1.5 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-amber-300 font-bold transition text-[10px] flex flex-col items-center">
-                <span>💩 ふつう</span>
-                <span class="text-[8px] font-normal text-amber-200">バランス</span>
-              </button>
-              <button type="button" data-amount="1.65" class="btn-amount px-1.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800/90 font-bold hover:bg-slate-700 transition text-[10px] flex flex-col items-center">
-                <span>🌋 おおい</span>
-                <span class="text-[8px] font-normal text-amber-400">大洪水！</span>
-              </button>
-            </div>
-          </div>
-
-          <p class="text-[9px] text-slate-400 text-center pt-0.5">※ 速度が速く、量が多いほどスコア倍率がアップします！</p>
-        </div>
-
-        <button id="btn-start" class="w-full max-w-xs py-3 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-base tracking-wider shadow-lg shadow-sky-500/40 active:scale-95 transition transform">
-          防衛出撃！！
-        </button>
-
-        <div class="mt-4 text-[11px] text-slate-400 text-center leading-relaxed">
-          操作: クリック / タップした方向へ発射！<br>
-          PCは [←][→] または [A][D] で移動、[Space]で正面発射も可能
-        </div>
-      </div>
-
-      <!-- Result Overlay Screen -->
-      <div id="screen-result" class="absolute inset-0 flex flex-col items-center justify-center p-6 glass-card z-20 hidden transition-all">
-        <div id="result-icon" class="text-6xl mb-2">💥</div>
-        <h2 id="result-title" class="text-3xl font-black text-center mb-1 tracking-wide text-rose-400">
-          防衛ライン突破...！
-        </h2>
-        <p id="result-desc" class="text-slate-300 text-xs text-center mb-5 max-w-xs leading-relaxed">
-          うんこの投下に耐えきれなかった...
-        </p>
-
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 mb-5 w-full max-w-xs text-center space-y-2.5 shadow-lg">
-          <div class="flex justify-between text-xs text-slate-400 px-2">
-            <span>撃墜数</span>
-            <span id="final-kills" class="text-sky-300 font-bold text-base">0体</span>
-          </div>
-          <div class="flex justify-between text-xs text-slate-400 px-2 border-t border-slate-800 pt-2">
-            <span>最終スコア</span>
-            <span id="final-score" class="text-amber-400 font-black text-xl">0</span>
-          </div>
-          <div class="flex justify-between text-xs text-slate-400 px-2 border-t border-slate-800 pt-2">
-            <span>ハイスコア</span>
-            <span id="final-best" class="text-emerald-400 font-bold text-base">0</span>
-          </div>
-        </div>
-
-        <div class="flex space-x-3 w-full max-w-xs">
-          <button id="btn-change-speed" class="flex-1 py-3 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs tracking-wider transition border border-slate-700">
-            設定変更
-          </button>
-          <button id="btn-retry" class="flex-1 py-3 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-sm tracking-wider shadow-lg shadow-sky-500/30 active:scale-95 transition transform">
-            再出撃！
-          </button>
-        </div>
-      </div>
+  <header>
+    <a href="index.html" class="back-btn">⬅ メニュー</a>
+    <div class="header-right">
+      <div class="stage-badge" id="stageBadge">ステージ 1</div>
     </div>
+  </header>
 
-    <!-- Mobile Controller Bar -->
-    <div class="w-full flex items-center justify-between px-6 py-2.5 bg-slate-950 border-t border-sky-500/20 sm:hidden">
-      <div class="flex space-x-2">
-        <button id="btn-move-left" class="w-14 h-12 bg-slate-800 active:bg-sky-600/30 border border-slate-700 rounded-xl flex items-center justify-center text-sky-300 text-xl transition select-none shadow">
-          ◀
-        </button>
-        <button id="btn-move-right" class="w-14 h-12 bg-slate-800 active:bg-sky-600/30 border border-slate-700 rounded-xl flex items-center justify-center text-sky-300 text-xl transition select-none shadow">
-          ▶
-        </button>
-      </div>
-      <button id="btn-shoot-straight" class="px-6 h-12 bg-gradient-to-r from-sky-500 to-blue-600 active:scale-95 rounded-xl font-black text-xs text-white tracking-widest shadow-md flex items-center space-x-1">
-        <span>発射</span>
-        <span class="text-base">💧</span>
-      </button>
+  <div class="msg-banner" id="msgBanner">
+    <span>👀</span> <span id="msgText">じゅんび中...</span>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="gameCanvas" width="340" height="340"></canvas>
+  </div>
+
+  <div class="bottom-actions">
+    <button class="repeat-btn" id="repeatBtn" onclick="requestRepeat()">
+      <span>👂</span> もういっかい きく
+    </button>
+  </div>
+
+  <!-- ステージクリアモーダル -->
+  <div class="clear-modal" id="clearModal">
+    <div class="clear-box">
+      <div class="clear-emoji" id="clearEmoji">🎉</div>
+      <div class="clear-title" id="clearTitle">せいかい！すごい！</div>
+      <p class="clear-desc" id="clearDesc">つぎのステージへ すすもう！</p>
+      <button class="next-btn" id="nextBtn" onclick="nextStage()">つぎの ステージへ！</button>
+      <div><span class="restart-link" onclick="restartFromBeginning()">ステージ1からやりなおす</span></div>
     </div>
   </div>
 
   <script>
-    class SoundFX {
-      constructor() {
-        this.ctx = null;
-      }
-      init() {
-        if (!this.ctx) {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          this.ctx = new AudioContextClass();
-        }
-        if (this.ctx.state === 'suspended') {
-          this.ctx.resume();
-        }
-      }
-      playShoot() {
-        if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(650, now);
-        osc.frequency.exponentialRampToValueAtTime(220, now + 0.12);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.12);
-      }
-      playHitPoop(isGold = false) {
-        if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = isGold ? 'triangle' : 'sawtooth';
-        osc.frequency.setValueAtTime(isGold ? 880 : 280, now);
-        osc.frequency.exponentialRampToValueAtTime(80, now + 0.18);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.18);
-      }
-      playDamage() {
-        if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(140, now);
-        osc.frequency.exponentialRampToValueAtTime(40, now + 0.28);
-        gain.gain.setValueAtTime(0.35, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.28);
-      }
-      playGameOver() {
-        if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        [220, 185, 147, 110].forEach((freq, i) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(freq, now + i * 0.12);
-          gain.gain.setValueAtTime(0.25, now + i * 0.12);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.35);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(now + i * 0.12);
-          osc.stop(now + i * 0.12 + 0.35);
-        });
-      }
+    let currentStage = 1;
+    let sequence = [];
+    let playerIndex = 0;
+    let isPlayingSequence = false;
+    let particles = [];
+    const MAX_SEQUENCE = 7; // 最大7音（ステージ9以降）
+
+    // 2回クリアごとに光る音が1つ増える計算（初期値: 3回、最大7回）
+    // ステージ 1, 2 ➔ 3回
+    // ステージ 3, 4 ➔ 4回
+    // ステージ 5, 6 ➔ 5回
+    // ステージ 7, 8 ➔ 6回
+    // ステージ 9以降 ➔ 7回（MAX）
+    function calcSequenceLength(stage) {
+      return Math.min(MAX_SEQUENCE, 3 + Math.floor((stage - 1) / 2));
     }
 
-    const sound = new SoundFX();
+    // 4つのパッド定義
+    const pads = [
+      { id: 0, label: 'あか', icon: '🍎', note: 'ド', freq: 261.63, baseColor: '#ff6b6b', highlightColor: '#ff9f9f', active: 0 },
+      { id: 1, label: 'あお', icon: '🚙', note: 'レ', freq: 293.66, baseColor: '#48dbfb', highlightColor: '#8ae8ff', active: 0 },
+      { id: 2, label: 'きいろ', icon: '⭐', note: 'ミ', freq: 329.63, baseColor: '#feca57', highlightColor: '#ffe599', active: 0 },
+      { id: 3, label: 'みどり', icon: '🐸', note: 'ソ', freq: 392.00, baseColor: '#1dd1a1', highlightColor: '#6ef0cf', active: 0 }
+    ];
+
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const msgBanner = document.getElementById('msgBanner');
+    const msgText = document.getElementById('msgText');
+    const stageBadge = document.getElementById('stageBadge');
+    const repeatBtn = document.getElementById('repeatBtn');
 
-    // DOM References
-    const hudScore = document.getElementById('hud-score');
-    const hudComboBadge = document.getElementById('hud-combo-badge');
-    const hudSpeedBadge = document.getElementById('hud-speed-badge');
-    const hudAmountBadge = document.getElementById('hud-amount-badge');
-    const hudHearts = document.getElementById('hud-hearts');
-    const screenStart = document.getElementById('screen-start');
-    const screenResult = document.getElementById('screen-result');
-    const finalKills = document.getElementById('final-kills');
-    const finalScore = document.getElementById('final-score');
-    const finalBest = document.getElementById('final-best');
-    const labelSpeed = document.getElementById('label-speed');
-    const labelAmount = document.getElementById('label-amount');
-
-    // Game Variables
-    let selectedSpeedMultiplier = 1.0;
-    let selectedAmountMultiplier = 1.0;
-    let score = 0;
-    let kills = 0;
-    let combo = 0;
-    let comboTimer = 0;
-    let hp = 3;
-    let isRunning = false;
-    let highScore = parseInt(localStorage.getItem('toilet_buster_best') || '0', 10);
-
-    let bullets = [];
-    let enemies = [];
-    let particles = [];
-    let spawnTimer = 0;
-
-    // Cannon Player
-    const player = {
-      x: 200,
-      y: 0,
-      size: 44,
-      speed: 6.5,
-      angle: -Math.PI / 2
-    };
-
-    // Keyboard state
-    const keys = { left: false, right: false, shoot: false };
-
-    const groupSpeed = document.getElementById('group-speed');
-    groupSpeed.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        groupSpeed.querySelectorAll('button').forEach(b => {
-          b.className = 'btn-speed px-1.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800/90 font-bold hover:bg-slate-700 transition text-[10px] flex flex-col items-center';
-        });
-        btn.className = 'btn-speed active px-1.5 py-1.5 rounded-xl border-2 border-sky-400 bg-sky-500/20 text-sky-300 font-bold transition text-[10px] flex flex-col items-center';
-        selectedSpeedMultiplier = parseFloat(btn.getAttribute('data-speed'));
-        const labelText = selectedSpeedMultiplier === 0.7 ? 'のんびり (0.7x)' : selectedSpeedMultiplier === 1.0 ? 'ふつう (1.0x)' : '激ムズ (1.55x)';
-        labelSpeed.textContent = labelText;
-        hudSpeedBadge.textContent = selectedSpeedMultiplier === 0.7 ? '速:のんびり' : selectedSpeedMultiplier === 1.0 ? '速:ふつう' : '速:激ムズ';
-      });
-    });
-
-    // 落下量の選択ボタン
-    const groupAmount = document.getElementById('group-amount');
-    groupAmount.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        groupAmount.querySelectorAll('button').forEach(b => {
-          b.className = 'btn-amount px-1.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800/90 font-bold hover:bg-slate-700 transition text-[10px] flex flex-col items-center';
-        });
-        btn.className = 'btn-amount active px-1.5 py-1.5 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-amber-300 font-bold transition text-[10px] flex flex-col items-center';
-        selectedAmountMultiplier = parseFloat(btn.getAttribute('data-amount'));
-        const labelText = selectedAmountMultiplier < 1.0 ? 'すくない (ゆったり)' : selectedAmountMultiplier === 1.0 ? 'ふつう (適量)' : 'おおい (大洪水！)';
-        labelAmount.textContent = labelText;
-        hudAmountBadge.textContent = selectedAmountMultiplier < 1.0 ? '量:すくない' : selectedAmountMultiplier === 1.0 ? '量:ふつう' : '量:おおい';
-      });
-    });
-
-    function resizeCanvas() {
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      player.y = canvas.height - 42;
-      if (!isRunning) {
-        player.x = canvas.width / 2;
+    let audioCtx = null;
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
     }
-    window.addEventListener('resize', resizeCanvas);
 
-    window.addEventListener('keydown', (e) => {
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
-      if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
-      if (['Space'].includes(e.code)) {
-        e.preventDefault();
-        shootBullet(player.x, player.y - 20, -Math.PI / 2);
+    function playTone(freq, duration = 0.28, type = 'sine') {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        // やさしく丸みのあるアタックとディケイ
+        gain.gain.setValueAtTime(0.01, now);
+        gain.gain.linearRampToValueAtTime(0.24, now + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch (e) {
+        console.error(e);
       }
-    });
+    }
 
-    window.addEventListener('keyup', (e) => {
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
-      if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
-    });
-
-    // Touch / Click to Aim & Shoot
-    canvas.addEventListener('pointerdown', (e) => {
-      if (!isRunning) return;
-      const rect = canvas.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
-
-      // Calculate angle from cannon to tap point
-      const dx = clickX - player.x;
-      const dy = clickY - player.y;
-      const angle = Math.atan2(dy, dx);
-
-      // Only shoot upwards (limit aim angle)
-      if (dy < -10) {
-        player.angle = angle;
-        shootBullet(player.x, player.y - 15, angle);
+    function playClearSound() {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        const chords = [523.25, 659.25, 783.99, 1046.5]; // ド・ミ・ソ・高ド
+        chords.forEach((f, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + idx * 0.09);
+          gain.gain.setValueAtTime(0.2, now + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + idx * 0.09 + 0.25);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.09);
+          osc.stop(now + idx * 0.09 + 0.25);
+        });
+      } catch (e) {
+        console.error(e);
       }
-    });
+    }
 
-    // Mobile buttons
-    const btnMoveLeft = document.getElementById('btn-move-left');
-    const btnMoveRight = document.getElementById('btn-move-right');
-    const btnShootStraight = document.getElementById('btn-shoot-straight');
-
-    const setupButtonHold = (el, key) => {
-      el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; }, { passive: false });
-      el.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
-      el.addEventListener('mousedown', () => { keys[key] = true; });
-      el.addEventListener('mouseup', () => { keys[key] = false; });
-      el.addEventListener('mouseleave', () => { keys[key] = false; });
-    };
-    setupButtonHold(btnMoveLeft, 'left');
-    setupButtonHold(btnMoveRight, 'right');
-
-    btnShootStraight.addEventListener('click', () => {
-      if (isRunning) {
-        shootBullet(player.x, player.y - 20, -Math.PI / 2);
+    function playBuzzer() {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, now);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.005, now + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      } catch (e) {
+        console.error(e);
       }
-    });
+    }
 
-    function shootBullet(startX, startY, angle) {
-      sound.init();
-      sound.playShoot();
-      const speed = 11;
-      bullets.push({
-        x: startX,
-        y: startY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        radius: 6,
-        life: 70
-      });
-      // Muzzle flash particles
-      for (let i = 0; i < 4; i++) {
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function spawnParticles(cx, cy, color) {
+      for (let i = 0; i < 14; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3.5 + 1.5;
         particles.push({
-          x: startX,
-          y: startY,
-          vx: Math.cos(angle + (Math.random() - 0.5)) * (Math.random() * 4 + 2),
-          vy: Math.sin(angle + (Math.random() - 0.5)) * (Math.random() * 4 + 2),
-          radius: Math.random() * 3 + 2,
-          color: '#38bdf8',
-          alpha: 0.9,
-          decay: 0.08
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1.0,
+          color: color,
+          size: Math.random() * 4 + 3
         });
       }
     }
 
-    function createPoopSplat(x, y, isGold = false) {
-      const count = isGold ? 24 : 16;
-      const baseColor = isGold ? '#fbbf24' : '#854d0e';
-      const subColor = isGold ? '#fef08a' : '#a16207';
-
-      for (let i = 0; i < count; i++) {
-        const ang = Math.random() * Math.PI * 2;
-        const spd = Math.random() * 6 + 1.5;
-        particles.push({
-          x,
-          y,
-          vx: Math.cos(ang) * spd,
-          vy: Math.sin(ang) * spd,
-          radius: Math.random() * 5 + 3,
-          color: Math.random() > 0.4 ? baseColor : subColor,
-          alpha: 1,
-          decay: Math.random() * 0.03 + 0.02
-        });
-      }
+    function getPadRect(index) {
+      const margin = 16;
+      const gap = 16;
+      const size = (canvas.width - margin * 2 - gap) / 2;
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const x = margin + col * (size + gap);
+      const y = margin + row * (size + gap);
+      return { x, y, size, cx: x + size / 2, cy: y + size / 2 };
     }
 
-    function spawnPoop() {
-      const margin = 28;
-      const x = Math.random() * (canvas.width - margin * 2) + margin;
-      
-      // 10% chance of Golden Tough Poop (requires 2 hits)
-      const isGold = Math.random() < 0.12;
-      const size = isGold ? 36 : 30;
-      // 全体的な落下速度を従来の0.5倍に調整
-      const baseSpeed = (Math.random() * 1.6 + 1.8 + (kills * 0.03)) * 0.5 * selectedSpeedMultiplier;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      enemies.push({
-        x,
-        y: -30,
-        vy: baseSpeed,
-        vx: (Math.random() - 0.5) * 0.8,
-        size,
-        hp: isGold ? 2 : 1,
-        maxHp: isGold ? 2 : 1,
-        isGold,
-        rot: Math.random() * 0.4 - 0.2,
-        rotSpeed: (Math.random() - 0.5) * 0.04
+      // 4つのパッドを描画
+      pads.forEach((pad, i) => {
+        const rect = getPadRect(i);
+        const isActive = pad.active > 0.05;
+        const scale = isActive ? 0.94 : 1.0;
+        const r = 24;
+
+        ctx.save();
+        ctx.translate(rect.cx, rect.cy);
+        ctx.scale(scale, scale);
+        ctx.translate(-rect.cx, -rect.cy);
+
+        // 発光時のグロー効果
+        if (isActive) {
+          ctx.shadowColor = pad.highlightColor;
+          ctx.shadowBlur = 24 * pad.active;
+        } else {
+          ctx.shadowColor = 'rgba(0,0,0,0.08)';
+          ctx.shadowBlur = 8;
+          ctx.shadowOffsetY = 4;
+        }
+
+        // 背景
+        roundRect(ctx, rect.x, rect.y, rect.size, rect.size, r);
+        ctx.fillStyle = isActive ? pad.highlightColor : pad.baseColor;
+        ctx.fill();
+
+        // 影のリセット
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // ハイライト光沢（上部）
+        ctx.save();
+        ctx.beginPath();
+        roundRect(ctx, rect.x + 4, rect.y + 4, rect.size - 8, rect.size * 0.45, r - 4);
+        ctx.clip();
+        const grad = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.size * 0.45);
+        grad.addColorStop(0, 'rgba(255,255,255,0.4)');
+        grad.addColorStop(1, 'rgba(255,255,255,0.0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(rect.x, rect.y, rect.size, rect.size * 0.5);
+        ctx.restore();
+
+        // 絵文字アイコン
+        ctx.font = `${rect.size * 0.38}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(pad.icon, rect.cx, rect.cy - rect.size * 0.1);
+
+        // テキストラベル
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${rect.size * 0.14}px sans-serif`;
+        ctx.fillText(pad.label, rect.cx, rect.cy + rect.size * 0.28);
+
+        ctx.restore();
+
+        // アニメーション減衰
+        if (pad.active > 0) {
+          pad.active -= 0.05;
+          if (pad.active < 0) pad.active = 0;
+        }
       });
-    }
 
-    function updateHeartsHUD() {
-      let heartsHtml = '';
-      for (let i = 0; i < 3; i++) {
-        heartsHtml += `<span>${i < hp ? '❤️' : '🖤'}</span>`;
-      }
-      hudHearts.innerHTML = heartsHtml;
-    }
-
-    function startGame() {
-      sound.init();
-      score = 0;
-      kills = 0;
-      combo = 0;
-      comboTimer = 0;
-      hp = 3;
-      bullets = [];
-      enemies = [];
-      particles = [];
-      spawnTimer = 0;
-      isRunning = true;
-
-      player.x = canvas.width / 2;
-      player.angle = -Math.PI / 2;
-
-      hudScore.textContent = '0';
-      hudComboBadge.textContent = '';
-      updateHeartsHUD();
-
-      screenStart.classList.add('hidden');
-      screenResult.classList.add('hidden');
-    }
-
-    function gameOver() {
-      isRunning = false;
-      sound.playGameOver();
-
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem('toilet_buster_best', highScore.toString());
-      }
-
-      finalKills.textContent = `${kills}体`;
-      finalScore.textContent = score.toLocaleString();
-      finalBest.textContent = highScore.toLocaleString();
-
-      screenResult.classList.remove('hidden');
-    }
-
-    function update() {
-      if (!isRunning) return;
-
-      // Player Movement
-      if (keys.left) player.x -= player.speed;
-      if (keys.right) player.x += player.speed;
-      player.x = Math.max(player.size / 2, Math.min(canvas.width - player.size / 2, player.x));
-
-      // Combo expiration timer
-      if (comboTimer > 0) {
-        comboTimer--;
-        if (comboTimer <= 0) {
-          combo = 0;
-          hudComboBadge.textContent = '';
-        }
-      }
-
-      // Spawning enemies (rate adjusts with both selected speed and amount)
-      spawnTimer++;
-      const baseInterval = Math.max(12, Math.floor((48 - (kills * 0.4)) / (selectedSpeedMultiplier * selectedAmountMultiplier)));
-      if (spawnTimer >= baseInterval) {
-        spawnPoop();
-        // 「おおい」の場合は確率で同時に2体スポーンするサプライズ
-        if (selectedAmountMultiplier > 1.5 && Math.random() < 0.45) {
-          spawnPoop();
-        }
-        spawnTimer = 0;
-      }
-
-      // Update Bullets
-      for (let i = bullets.length - 1; i >= 0; i--) {
-        const b = bullets[i];
-        b.x += b.vx;
-        b.y += b.vy;
-        b.life--;
-
-        // Check bounds & life
-        if (b.y < -20 || b.x < -20 || b.x > canvas.width + 20 || b.life <= 0) {
-          bullets.splice(i, 1);
-          continue;
-        }
-
-        // Bullet to Poop Collision
-        for (let j = enemies.length - 1; j >= 0; j--) {
-          const e = enemies[j];
-          const dist = Math.hypot(b.x - e.x, b.y - e.y);
-
-          if (dist < b.radius + e.size / 2) {
-            // Hit!
-            e.hp--;
-            sound.playHitPoop(e.isGold);
-
-            if (e.hp <= 0) {
-              // Destroyed poop
-              createPoopSplat(e.x, e.y, e.isGold);
-              enemies.splice(j, 1);
-              kills++;
-              combo++;
-              comboTimer = 110;
-
-              // Score calculation based on speed, amount, and combo
-              const basePoints = e.isGold ? 250 : 100;
-              const speedBonus = Math.round(selectedSpeedMultiplier * 10) / 10;
-              const amountBonus = Math.round(selectedAmountMultiplier * 10) / 10;
-              const pointsEarned = Math.round(basePoints * (1 + (combo - 1) * 0.2) * speedBonus * amountBonus);
-              score += pointsEarned;
-
-              hudScore.textContent = score.toLocaleString();
-              hudComboBadge.textContent = combo > 1 ? `x${combo} COMBO!` : '';
-              hudComboBadge.className = combo > 3 ? 'text-[11px] text-amber-300 font-black animate-pulse' : 'text-[11px] text-sky-400 font-bold';
-            } else {
-              // Damaged gold poop visual push
-              e.y -= 4;
-              createPoopSplat(b.x, b.y, true);
-            }
-
-            bullets.splice(i, 1);
-            break;
-          }
-        }
-      }
-
-      // Update Enemies (Poops)
-      for (let i = enemies.length - 1; i >= 0; i--) {
-        const e = enemies[i];
-        e.y += e.vy;
-        e.x += e.vx;
-        e.rot += e.rotSpeed;
-
-        // Bounce horizontally if hitting walls
-        if (e.x < e.size / 2 || e.x > canvas.width - e.size / 2) {
-          e.vx *= -1;
-        }
-
-        // Reach bottom (Ground defense breached)
-        if (e.y >= canvas.height - 35) {
-          createPoopSplat(e.x, canvas.height - 30, e.isGold);
-          enemies.splice(i, 1);
-          sound.playDamage();
-          hp--;
-          updateHeartsHUD();
-          combo = 0;
-          hudComboBadge.textContent = '';
-
-          if (hp <= 0) {
-            gameOver();
-            return;
-          }
-        }
-      }
-
-      // Update Particles
+      // パーティクル描画
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.alpha -= p.decay;
-        if (p.alpha <= 0) particles.splice(i, 1);
-      }
-    }
-
-    function render() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Night / Sewer City Skyline Background
-      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      grad.addColorStop(0, '#090d16');
-      grad.addColorStop(0.7, '#111827');
-      grad.addColorStop(1, '#1e293b');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Distant stars / water bubbles floating
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
-      for (let i = 0; i < 6; i++) {
-        const bx = (Date.now() * 0.02 + i * 70) % canvas.width;
-        const by = (Date.now() * 0.015 + i * 110) % canvas.height;
-        ctx.beginPath();
-        ctx.arc(bx, by, (i % 3) + 1.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Defense Line Barrier at Bottom
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([8, 8]);
-      ctx.beginPath();
-      ctx.moveTo(0, canvas.height - 35);
-      ctx.lineTo(canvas.width, canvas.height - 35);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Draw Danger Warning text
-      ctx.font = 'bold 10px sans-serif';
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.45)';
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡ 防衛ライン ⚡', canvas.width / 2, canvas.height - 40);
-
-      // Draw Bullets (Water shots)
-      for (let b of bullets) {
-        ctx.save();
-        ctx.fillStyle = '#38bdf8';
-        ctx.shadowColor = '#0284c7';
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Little water droplet tail
-        ctx.fillStyle = '#bae6fd';
-        ctx.beginPath();
-        ctx.arc(b.x - b.vx * 0.4, b.y - b.vy * 0.4, b.radius * 0.65, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-
-      // Draw Enemies (Poops)
-      for (let e of enemies) {
-        ctx.save();
-        ctx.translate(e.x, e.y);
-        ctx.rotate(e.rot);
-
-        ctx.font = `${e.size}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        if (e.isGold) {
-          ctx.shadowColor = '#fbbf24';
-          ctx.shadowBlur = 12;
-          ctx.fillText('💩', 0, 0);
-
-          // Golden Crown icon above tough gold poop
-          ctx.font = '16px sans-serif';
-          ctx.fillText('👑', 0, -e.size / 2 - 2);
-        } else {
-          ctx.fillText('💩', 0, 0);
+        p.life -= 0.035;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
         }
-        ctx.restore();
-      }
-
-      // Draw Player Turret (Washlet Water Cannon 🚽🔫)
-      ctx.save();
-      ctx.translate(player.x, player.y);
-
-      // Draw cannon barrel aimed at angle
-      ctx.save();
-      ctx.rotate(player.angle + Math.PI / 2);
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(-6, -26, 12, 22);
-      ctx.fillStyle = '#0284c7';
-      ctx.fillRect(-8, -28, 16, 6);
-      ctx.restore();
-
-      // Base Toilet Turret emoji
-      ctx.font = '38px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🚽', 0, 0);
-      ctx.restore();
-
-      // Draw Particles
-      for (let p of particles) {
         ctx.save();
-        ctx.globalAlpha = p.alpha;
+        ctx.globalAlpha = Math.max(0, p.life);
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
+
+      requestAnimationFrame(draw);
     }
 
-    function loop() {
-      update();
-      render();
-      requestAnimationFrame(loop);
+    function triggerPad(index, playSoundEffect = true) {
+      const pad = pads[index];
+      pad.active = 1.0;
+      const rect = getPadRect(index);
+      spawnParticles(rect.cx, rect.cy, pad.highlightColor);
+      if (playSoundEffect) {
+        playTone(pad.freq, 0.3);
+      }
     }
 
-    document.getElementById('btn-start').addEventListener('click', startGame);
-    document.getElementById('btn-retry').addEventListener('click', startGame);
-    document.getElementById('btn-change-speed').addEventListener('click', () => {
-      screenResult.classList.add('hidden');
-      screenStart.classList.remove('hidden');
+    async function playSequence() {
+      isPlayingSequence = true;
+      repeatBtn.disabled = true;
+      playerIndex = 0;
+      msgText.textContent = `よーく みて きいてね！(${sequence.length}かい)`;
+
+      await wait(600);
+
+      for (let i = 0; i < sequence.length; i++) {
+        const padIdx = sequence[i];
+        triggerPad(padIdx, true);
+        await wait(650);
+      }
+
+      await wait(200);
+      isPlayingSequence = false;
+      repeatBtn.disabled = false;
+      msgText.textContent = `おなじ じゅんばんにおしてね！(1 / ${sequence.length})`;
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function initStage(stage) {
+      currentStage = stage;
+      const count = calcSequenceLength(stage);
+
+      stageBadge.textContent = `ステージ ${currentStage}`;
+      document.getElementById('clearModal').style.display = 'none';
+
+      // 新しいシーケンス生成
+      sequence = [];
+      for (let i = 0; i < count; i++) {
+        sequence.push(Math.floor(Math.random() * 4));
+      }
+
+      playSequence();
+    }
+
+    function handleInput(padIndex) {
+      if (isPlayingSequence) return;
+
+      triggerPad(padIndex, true);
+
+      // 正解判定
+      if (padIndex === sequence[playerIndex]) {
+        playerIndex++;
+        if (playerIndex >= sequence.length) {
+          // ステージクリア！
+          isPlayingSequence = true;
+          repeatBtn.disabled = true;
+          msgText.textContent = '🎉 クリア！すごい！';
+          playClearSound();
+          setTimeout(showClearModal, 400);
+        } else {
+          msgText.textContent = `そのちょうし！ (${playerIndex + 1} / ${sequence.length})`;
+        }
+      } else {
+        // お手つき判定
+        isPlayingSequence = true;
+        repeatBtn.disabled = true;
+        playBuzzer();
+        msgText.textContent = 'あれれ？もういっかい きいてみよう！';
+
+        // 0.8秒後にお手本を自動再生して再挑戦
+        setTimeout(() => {
+          playSequence();
+        }, 900);
+      }
+    }
+
+    function requestRepeat() {
+      if (isPlayingSequence) return;
+      playSequence();
+    }
+
+    function showClearModal() {
+      const curCount = calcSequenceLength(currentStage);
+      const nextCount = calcSequenceLength(currentStage + 1);
+      const modal = document.getElementById('clearModal');
+      const title = document.getElementById('clearTitle');
+      const desc = document.getElementById('clearDesc');
+      const emoji = document.getElementById('clearEmoji');
+
+      title.textContent = `ステージ ${currentStage} クリア！`;
+
+      if (curCount >= MAX_SEQUENCE) {
+        emoji.textContent = '👑';
+        desc.innerHTML = `すごすぎる！さいだいレベルの<br><strong style="color:#a55eea; font-size:1.15rem;">【${curCount}回】</strong> をおぼえられたね！<br>おとあてマスターの大天才！`;
+      } else if (nextCount > curCount) {
+        emoji.textContent = '⭐';
+        desc.innerHTML = `2回クリア たっせい！つぎからは<br><strong style="color:#ee5253; font-size:1.15rem;">【${nextCount}回】</strong> にパワーアップ！`;
+      } else {
+        emoji.textContent = '🎉';
+        desc.innerHTML = `おぼえるじゅんばん バッチリ！<br>あと1回クリアで レベルアップ！`;
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function nextStage() {
+      initStage(currentStage + 1);
+    }
+
+    function restartFromBeginning() {
+      initStage(1);
+    }
+
+    // Canvasのタップ／クリック座標判定
+    function handleCanvasPointer(e) {
+      if (isPlayingSequence) return;
+      ensureAudioContext();
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      for (let i = 0; i < 4; i++) {
+        const pRect = getPadRect(i);
+        if (x >= pRect.x && x <= pRect.x + pRect.size &&
+            y >= pRect.y && y <= pRect.y + pRect.size) {
+          handleInput(i);
+          break;
+        }
+      }
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      handleCanvasPointer(e);
     });
 
-    window.onload = () => {
-      resizeCanvas();
-      loop();
-    };
+    // 初期化
+    window.addEventListener('load', () => {
+      draw();
+      initStage(1);
+    });
   </script>
 </body>
 </html>
