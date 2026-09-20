@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800;900&display=swap" rel="stylesheet">
+  
   <style>
     * {
       box-sizing: border-box;
@@ -49,9 +50,21 @@
     .float-item {
       animation: floating-star 2.4s ease-in-out infinite;
     }
+
+    /* うんこアイコンのぷるぷるアニメーション */
+    @keyframes wiggle-poop {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(-8deg) scale(1.06); }
+      75% { transform: rotate(8deg) scale(1.06); }
+    }
+    .poop-wiggle {
+      display: inline-block;
+      animation: wiggle-poop 2.2s ease-in-out infinite;
+    }
   </style>
 </head>
-<body class="flex flex-col items-center justify-between p-4 sm:p-6 text-slate-800 antialiased">
+
+<body class="flex flex-col items-center justify-between p-4 sm:p-6 text-slate-800 antialiased min-h-screen">
 
   <main class="w-full max-w-sm flex flex-col items-center mt-3 sm:mt-6">
 
@@ -145,6 +158,25 @@
           </p>
         </div>
         <div class="text-white/60 text-xl font-black group-hover:translate-x-1 transition">
+          ➜
+        </div>
+      </a>
+
+      <!-- うんこゲーム (特別リンク) -->
+      <a href="unko/index.html" class="group relative overflow-hidden rounded-3xl p-5 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-white shadow-lg shadow-amber-500/30 border-2 border-white/70 active:scale-95 hover:shadow-amber-500/45 transition duration-150 flex items-center">
+        <div class="w-16 h-16 rounded-2xl bg-white/30 backdrop-blur-xs flex items-center justify-center text-4xl shadow-inner mr-4 shrink-0 group-hover:scale-110 transition">
+          <span class="poop-wiggle">💩</span>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl font-black tracking-wide text-white drop-shadow-sm">うんこゲーム</span>
+            <span class="text-[10px] bg-white/30 px-2 py-0.5 rounded-full font-black text-amber-900 shadow-xs">だいすき！</span>
+          </div>
+          <p class="text-xs text-amber-50/95 font-bold mt-1 tracking-wide">
+            わらいすぎちゅうい！たのしいあそび
+          </p>
+        </div>
+        <div class="text-white/70 text-xl font-black group-hover:translate-x-1 transition">
           ➜
         </div>
       </a>
