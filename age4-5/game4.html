@@ -2,657 +2,830 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>トイレット・ダッシュ！ - うんこをよけてゴールを目指せ</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ことばパズル（ひらがなタッチ） - とうちゃんのゲームラボ</title>
   <style>
     * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
       user-select: none;
       -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
     body {
-      background: radial-gradient(circle at center, #3d2b26 0%, #1a120f 100%);
-      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: #fdfaf6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Maru Gothic ProN", sans-serif;
+      min-height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px max(12px, env(safe-area-inset-bottom));
       touch-action: none;
       overflow: hidden;
     }
-    .game-shadow {
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 170, 0, 0.2);
+    header {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
     }
-    @keyframes pulse-gold {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px #ffd700); }
-      50% { transform: scale(1.1); filter: drop-shadow(0 0 12px #ffa500); }
+    .back-btn {
+      text-decoration: none;
+      background: #fff;
+      color: #636e72;
+      font-size: 0.82rem;
+      padding: 5px 12px;
+      border-radius: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      font-weight: 500;
     }
-    .toilet-pulse {
-      animation: pulse-gold 1.2s infinite ease-in-out;
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .glass-card {
-      background: rgba(20, 25, 35, 0.88);
-      backdrop-filter: blur(12px);
+    .stage-badge {
+      background: linear-gradient(135deg, #ff7675, #e84393);
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.8rem;
+      padding: 5px 12px;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(232,67,147,0.3);
+      white-space: nowrap;
+    }
+    .msg-banner {
+      background: #ffffff;
+      padding: 8px 18px;
+      border-radius: 20px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      margin: 4px 0;
+      text-align: center;
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: #2d3436;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-shrink: 0;
+      min-height: 38px;
+    }
+    .canvas-wrapper {
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 28px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    #gameCanvas {
+      display: block;
+      border-radius: 20px;
+      background: #fbf9f5;
+      width: min(340px, 88vw, 50vh);
+      height: min(390px, 88vw * 1.15, 57vh);
+      touch-action: none;
+      cursor: pointer;
+    }
+    .bottom-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .reset-btn {
+      background: #ffffff;
+      border: 2px solid #fed7d7;
+      color: #e53e3e;
+      font-size: 0.88rem;
+      font-weight: bold;
+      padding: 8px 18px;
+      border-radius: 22px;
+      box-shadow: 0 2px 8px rgba(229,62,62,0.12);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      touch-action: manipulation;
+    }
+    .reset-btn:active {
+      transform: scale(0.93);
+      background: #fff5f5;
+    }
+    /* クリアモーダル */
+    .clear-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .clear-box {
+      background: #ffffff;
+      padding: 24px 20px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      max-width: 310px;
+      width: 88%;
+    }
+    .clear-emoji {
+      font-size: 3.8rem;
+      margin-bottom: 6px;
+      animation: pop 0.4s ease-out;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      80% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    .clear-title {
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: #2d3436;
+      margin-bottom: 6px;
+    }
+    .clear-desc {
+      color: #636e72;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    .next-btn {
+      margin-top: 16px;
+      padding: 12px 22px;
+      background: linear-gradient(135deg, #ff7675, #e84393);
+      border: none;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: bold;
+      border-radius: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(232,67,147,0.35);
+      width: 100%;
+      touch-action: manipulation;
+    }
+    .next-btn:active {
+      transform: scale(0.95);
+    }
+    .restart-link {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      text-decoration: underline;
+      cursor: pointer;
     }
   </style>
 </head>
-<body class="h-screen w-screen flex flex-col items-center justify-center p-2 sm:p-4 text-white">
+<body>
 
-  <div class="relative w-full max-w-md h-full max-h-[760px] flex flex-col rounded-3xl overflow-hidden border-2 border-amber-600/40 game-shadow bg-sky-300">
-    
-    <!-- Top HUD Header -->
-    <header class="w-full flex flex-col px-4 py-3 bg-slate-900/95 border-b border-amber-500/30 z-10 shadow-md">
-      <div class="flex items-center justify-between text-xs sm:text-sm font-bold mb-2">
-        <div class="flex items-center space-x-2">
-          <span class="text-xl">🧻</span>
-          <span class="text-amber-300">ペーパー: <span id="hud-paper" class="text-white text-base font-extrabold">0</span></span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <span class="text-slate-400">ゴールまで:</span>
-          <span id="hud-remain" class="text-emerald-400 font-extrabold text-base">100m</span>
-        </div>
-      </div>
-
-      <div class="w-full flex items-center space-x-2">
-        <span class="text-sm">🏃</span>
-        <div class="relative flex-1 h-4 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
-          <div id="hud-progress-bar" class="h-full bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 transition-all duration-100 rounded-full" style="width: 0%;"></div>
-        </div>
-        <span class="text-lg toilet-pulse">🚽</span>
-      </div>
-    </header>
-
-    <!-- Canvas Area -->
-    <div class="relative flex-1 w-full h-full overflow-hidden bg-gradient-to-b from-sky-400 via-lime-200 to-amber-200">
-      <canvas id="gameCanvas" class="w-full h-full block"></canvas>
-
-      <!-- Start Overlay Screen -->
-      <div id="screen-start" class="absolute inset-0 flex flex-col items-center justify-center p-6 glass-card z-20 transition-all">
-        <div class="text-6xl mb-3 animate-bounce">🚽💨</div>
-        <h1 class="text-3xl sm:text-4xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-300 to-yellow-200 text-center mb-2 drop-shadow">
-          トイレット・ダッシュ！
-        </h1>
-        <p class="text-slate-200 text-xs sm:text-sm text-center mb-4 leading-relaxed max-w-xs">
-          空から大量の<span class="text-amber-400 font-bold">うんこ💩</span>が降ってきた！<br>
-          華麗によけて便座へ飛び込め！
-        </p>
-
-        <!-- 設定セレクトエリア -->
-        <div class="w-full max-w-xs bg-slate-800/90 border border-amber-500/40 rounded-2xl p-3.5 mb-4 space-y-3.5 shadow-inner text-xs">
-          <!-- 距離選択 -->
-          <div>
-            <div class="text-[11px] font-bold text-amber-300 mb-1.5 flex items-center justify-between">
-              <span>🏁 ゴールまでの距離</span>
-              <span id="label-selected-dist" class="text-slate-300 font-normal">ふつう (100m)</span>
-            </div>
-            <div class="grid grid-cols-3 gap-1.5" id="group-dist">
-              <button type="button" data-dist="50" class="btn-opt px-2 py-1.5 rounded-lg border border-slate-600 bg-slate-700/80 font-bold hover:bg-slate-600 transition text-[11px]">
-                50m<br><span class="text-[9px] font-normal text-slate-400">ちかい</span>
-              </button>
-              <button type="button" data-dist="100" class="btn-opt active px-2 py-1.5 rounded-lg border-2 border-amber-400 bg-amber-500/20 text-amber-300 font-bold transition text-[11px]">
-                100m<br><span class="text-[9px] font-normal text-amber-200">ふつう</span>
-              </button>
-              <button type="button" data-dist="200" class="btn-opt px-2 py-1.5 rounded-lg border border-slate-600 bg-slate-700/80 font-bold hover:bg-slate-600 transition text-[11px]">
-                200m<br><span class="text-[9px] font-normal text-slate-400">とおい</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- スピード選択 -->
-          <div>
-            <div class="text-[11px] font-bold text-amber-300 mb-1.5 flex items-center justify-between">
-              <span>⚡ ダッシュ速度</span>
-              <span id="label-selected-speed" class="text-slate-300 font-normal">ふつう (1.0x)</span>
-            </div>
-            <div class="grid grid-cols-3 gap-1.5" id="group-speed">
-              <button type="button" data-speed="0.75" class="btn-opt px-2 py-1.5 rounded-lg border border-slate-600 bg-slate-700/80 font-bold hover:bg-slate-600 transition text-[11px]">
-                🐢 おそめ<br><span class="text-[9px] font-normal text-slate-400">0.75倍</span>
-              </button>
-              <button type="button" data-speed="1.0" class="btn-opt active px-2 py-1.5 rounded-lg border-2 border-amber-400 bg-amber-500/20 text-amber-300 font-bold transition text-[11px]">
-                🏃 ふつう<br><span class="text-[9px] font-normal text-amber-200">1.0倍</span>
-              </button>
-              <button type="button" data-speed="1.45" class="btn-opt px-2 py-1.5 rounded-lg border border-slate-600 bg-slate-700/80 font-bold hover:bg-slate-600 transition text-[11px]">
-                🚀 爆速<br><span class="text-[9px] font-normal text-slate-400">1.45倍</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <button id="btn-start" class="w-full max-w-xs py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg tracking-wider shadow-lg shadow-orange-500/40 active:scale-95 transition transform">
-          ダッシュ開始！
-        </button>
-      </div>
-
-      <!-- Result Overlay Screen -->
-      <div id="screen-result" class="absolute inset-0 flex flex-col items-center justify-center p-6 glass-card z-20 hidden transition-all">
-        <div id="result-icon" class="text-6xl mb-3">💩</div>
-        <h2 id="result-title" class="text-3xl sm:text-4xl font-black text-center mb-2 tracking-wide">
-          直撃...！
-        </h2>
-        <p id="result-desc" class="text-slate-300 text-xs sm:text-sm text-center mb-6 max-w-xs leading-relaxed">
-          うんこに当たってしまった...
-        </p>
-
-        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 mb-6 w-full max-w-xs text-center space-y-2 shadow-lg">
-          <div class="flex justify-between text-xs text-slate-400 px-3">
-            <span>集めたペーパー</span>
-            <span id="final-paper" class="text-amber-400 font-bold text-base">0個</span>
-          </div>
-          <div class="flex justify-between text-xs text-slate-400 px-3 border-t border-slate-700/60 pt-2">
-            <span>到達率</span>
-            <span id="final-progress" class="text-emerald-400 font-bold text-base">0%</span>
-          </div>
-        </div>
-
-        <div class="flex space-x-3">
-          <button id="btn-change-settings" class="px-5 py-3 rounded-full bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs tracking-wider transition">
-            設定を変える
-          </button>
-          <button id="btn-retry" class="px-7 py-3 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wider shadow-lg shadow-amber-500/30 active:scale-95 transition transform">
-            もう一度！
-          </button>
-        </div>
-      </div>
+  <header>
+    <a href="index.html" class="back-btn">⬅ メニュー</a>
+    <div class="header-right">
+      <div class="stage-badge" id="stageBadge">ステージ 1 / 10</div>
     </div>
+  </header>
 
-    <!-- Mobile Bottom Touch Controls -->
-    <div class="w-full flex items-center justify-between px-8 py-3 bg-slate-900/95 border-t border-amber-500/20 sm:hidden">
-      <button id="btn-left" class="w-20 h-14 bg-slate-800 border-2 border-amber-500/40 rounded-2xl flex items-center justify-center text-amber-300 text-2xl active:bg-amber-500/20 active:scale-90 transition select-none shadow">
-        ◀
-      </button>
-      <span class="text-[11px] text-amber-200/60 font-bold tracking-widest uppercase">左右に移動</span>
-      <button id="btn-right" class="w-20 h-14 bg-slate-800 border-2 border-amber-500/40 rounded-2xl flex items-center justify-center text-amber-300 text-2xl active:bg-amber-500/20 active:scale-90 transition select-none shadow">
-        ▶
-      </button>
+  <div class="msg-banner" id="msgBanner">
+    <span>💡</span> <span id="msgText">じゅんばんに もじを タッチしてね！</span>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="gameCanvas" width="340" height="390"></canvas>
+  </div>
+
+  <div class="bottom-actions">
+    <button class="reset-btn" id="resetBtn" onclick="retryCurrentWord()">
+      <span>🔄</span> やりなおす
+    </button>
+  </div>
+
+  <!-- ステージクリアモーダル -->
+  <div class="clear-modal" id="clearModal">
+    <div class="clear-box">
+      <div class="clear-emoji" id="clearEmoji">🎉</div>
+      <div class="clear-title" id="clearTitle">せいかい！すごい！</div>
+      <p class="clear-desc" id="clearDesc">つぎのことばに チャレンジ！</p>
+      <button class="next-btn" id="nextBtn" onclick="nextStage()">つぎの ステージへ！</button>
+      <div><span class="restart-link" onclick="restartFromBeginning()">ステージ1からやりなおす</span></div>
     </div>
   </div>
 
   <script>
-    class SoundFX {
-      constructor() {
-        this.ctx = null;
-      }
-      init() {
-        if (!this.ctx) {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          this.ctx = new AudioContextClass();
-        }
-        if (this.ctx.state === 'suspended') {
-          this.ctx.resume();
-        }
-      }
-      playPaper() {
-        if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(523, now);
-        osc.frequency.setValueAtTime(659, now + 0.08);
-        osc.frequency.setValueAtTime(784, now + 0.16);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.28);
-      }
-      playHit() {
-        if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(160, now);
-        osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
-        gain.gain.setValueAtTime(0.35, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.35);
-      }
-      playClear() {
-        if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const notes = [523.25, 659.25, 783.99, 1046.5];
-        notes.forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, now + idx * 0.12);
-          gain.gain.setValueAtTime(0.25, now + idx * 0.12);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.4);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(now + idx * 0.12);
-          osc.stop(now + idx * 0.12 + 0.4);
-        });
-      }
-    }
+    // 4〜5歳児向けの語彙データベース（10問すべて異なるイラスト）
+    const WORD_DATABASE = {
+      2: [
+        { word: 'いぬ', emoji: '🐶', dummies: ['ね', 'う', 'み'] },
+        { word: 'ねこ', emoji: '🐱', dummies: ['こ', 'さ', 'る'] },
+        { word: 'にじ', emoji: '🌈', dummies: ['あ', 'み', 'そ'] },
+        { word: 'うし', emoji: '🐮', dummies: ['ま', 'し', 'と'] },
+        { word: 'あり', emoji: '🐜', dummies: ['は', 'り', 'か'] },
+        { word: 'くま', emoji: '🐻', dummies: ['ま', 'る', 'と'] },
+        { word: 'とり', emoji: '🐦', dummies: ['り', 'さ', 'ち'] },
+        { word: 'ほし', emoji: '⭐', dummies: ['つ', 'き', 'ひ'] },
+        { word: 'つき', emoji: '🌙', dummies: ['ほ', 'ひ', 'そ'] },
+        { word: 'はな', emoji: '🌸', dummies: ['く', 'さ', 'き'] }
+      ],
+      3: [
+        { word: 'りんご', emoji: '🍎', dummies: ['ば', 'み', 'め', 'す'] },
+        { word: 'くるま', emoji: '🚗', dummies: ['ふ', 'ね', 'ひ', 'こ'] },
+        { word: 'ばなな', emoji: '🍌', dummies: ['も', 'ぶ', 'ど', 'う'] },
+        { word: 'すいか', emoji: '🍉', dummies: ['み', 'か', 'ん', 'め'] },
+        { word: 'さかな', emoji: '🐟', dummies: ['た', 'こ', 'か', 'に'] },
+        { word: 'いちご', emoji: '🍓', dummies: ['ぶ', 'ど', 'う', 'も'] },
+        { word: 'きりん', emoji: '🦒', dummies: ['ぞ', 'う', 'り', 'し'] },
+        { word: 'かえる', emoji: '🐸', dummies: ['む', 'し', 'と', 'り'] },
+        { word: 'うさぎ', emoji: '🐰', dummies: ['い', 'ぬ', 'ね', 'こ'] },
+        { word: 'ぶどう', emoji: '🍇', dummies: ['り', 'ん', 'ご', 'め'] }
+      ],
+      4: [
+        { word: 'おにぎり', emoji: '🍙', dummies: ['ぱ', 'ん', 'め', 'し'] },
+        { word: 'ひこうき', emoji: '✈️', dummies: ['ふ', 'ね', 'そ', 'ら'] },
+        { word: 'たいよう', emoji: '☀️', dummies: ['ほ', 'し', 'く', 'も'] },
+        { word: 'らいおん', emoji: '🦁', dummies: ['と', 'ら', 'ぱ', 'ん'] },
+        { word: 'ひまわり', emoji: '🌻', dummies: ['は', 'な', 'み', 'ど'] },
+        { word: 'ろけっと', emoji: '🚀', dummies: ['ほ', 'し', 'つ', 'き'] },
+        { word: 'ふうせん', emoji: '🎈', dummies: ['あ', 'か', 'い', 'ろ'] },
+        { word: 'ぺんぎん', emoji: '🐧', dummies: ['と', 'り', 'う', 'み'] },
+        { word: 'かきごおり', emoji: '🍧', dummies: ['あ', 'め', 'ゆ', 'き'] }
+      ]
+    };
 
-    const sound = new SoundFX();
+    const TOTAL_STAGES = 10;
+
+    const tileColors = [
+      { bg: '#ff7675', border: '#e84393', text: '#ffffff' },
+      { bg: '#74b9ff', border: '#0984e3', text: '#ffffff' },
+      { bg: '#55efc4', border: '#00b894', text: '#2d3436' },
+      { bg: '#ffeaa7', border: '#fdcb6e', text: '#2d3436' },
+      { bg: '#a29bfe', border: '#6c5ce7', text: '#ffffff' },
+      { bg: '#fab1a0', border: '#e17055', text: '#ffffff' }
+    ];
+
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const stageBadge = document.getElementById('stageBadge');
+    const msgBanner = document.getElementById('msgBanner');
+    const msgText = document.getElementById('msgText');
 
-    // DOM References
-    const hudPaper = document.getElementById('hud-paper');
-    const hudRemain = document.getElementById('hud-remain');
-    const hudProgressBar = document.getElementById('hud-progress-bar');
-    const screenStart = document.getElementById('screen-start');
-    const screenResult = document.getElementById('screen-result');
-    const resultIcon = document.getElementById('result-icon');
-    const resultTitle = document.getElementById('result-title');
-    const resultDesc = document.getElementById('result-desc');
-    const finalPaper = document.getElementById('final-paper');
-    const finalProgress = document.getElementById('final-progress');
-
-    // 距離と速度の設定
-    let selectedDistanceMeters = 100;
-    let selectedSpeedMultiplier = 1.0;
-    let totalDistanceUnits = 1000;
-
-    let distance = 0;
-    let paperCount = 0;
-    let isRunning = false;
-    let hazards = [];
-    let papers = [];
+    let currentStage = 1;
+    let currentWordObj = null;
+    let targetWord = '';
+    let targetChars = [];
+    let filledChars = [];
+    let tiles = [];
     let particles = [];
-    let roadStripeOffset = 0;
-    let spawnTimer = 0;
-    let paperTimer = 0;
+    let isClear = false;
+    let animTime = 0;
 
-    const basePlayerSpeed = 7;
-    const player = {
-      x: 200,
-      y: 0,
-      targetX: 200,
-      size: 40,
-      speed: basePlayerSpeed
-    };
+    let wordPoolByLength = { 2: [], 3: [], 4: [] };
 
-    // 距離選択ボタンのイベント
-    const groupDist = document.getElementById('group-dist');
-    const labelSelectedDist = document.getElementById('label-selected-dist');
-    groupDist.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        groupDist.querySelectorAll('button').forEach(b => {
-          b.className = 'btn-opt px-2 py-1.5 rounded-lg border border-slate-600 bg-slate-700/80 font-bold hover:bg-slate-600 transition text-[11px]';
-        });
-        btn.className = 'btn-opt active px-2 py-1.5 rounded-lg border-2 border-amber-400 bg-amber-500/20 text-amber-300 font-bold transition text-[11px]';
-        selectedDistanceMeters = parseInt(btn.getAttribute('data-dist'), 10);
-        totalDistanceUnits = selectedDistanceMeters * 10;
-        const sub = selectedDistanceMeters === 50 ? 'ちかい' : selectedDistanceMeters === 100 ? 'ふつう' : 'とおい';
-        labelSelectedDist.textContent = `${sub} (${selectedDistanceMeters}m)`;
-        hudRemain.textContent = `${selectedDistanceMeters}m`;
-      });
-    });
-
-    // スピード選択ボタンのイベント
-    const groupSpeed = document.getElementById('group-speed');
-    const labelSelectedSpeed = document.getElementById('label-selected-speed');
-    groupSpeed.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        groupSpeed.querySelectorAll('button').forEach(b => {
-          b.className = 'btn-opt px-2 py-1.5 rounded-lg border border-slate-600 bg-slate-700/80 font-bold hover:bg-slate-600 transition text-[11px]';
-        });
-        btn.className = 'btn-opt active px-2 py-1.5 rounded-lg border-2 border-amber-400 bg-amber-500/20 text-amber-300 font-bold transition text-[11px]';
-        selectedSpeedMultiplier = parseFloat(btn.getAttribute('data-speed'));
-        const sub = selectedSpeedMultiplier < 1 ? 'おそめ' : selectedSpeedMultiplier > 1 ? '爆速' : 'ふつう';
-        labelSelectedSpeed.textContent = `${sub} (${selectedSpeedMultiplier}x)`;
-      });
-    });
-
-    function resizeCanvas() {
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      player.y = canvas.height - 75;
-      if (!isRunning) {
-        player.x = canvas.width / 2;
-        player.targetX = canvas.width / 2;
+    // Web Audio API
+    let audioCtx = null;
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
     }
-    window.addEventListener('resize', resizeCanvas);
 
-    // Keyboard controls
-    const keys = { left: false, right: false };
-    window.addEventListener('keydown', (e) => {
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
-      if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
-    });
-    window.addEventListener('keyup', (e) => {
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
-      if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
-    });
+    function playTone(freq, duration = 0.22, type = 'triangle') {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
-    // Touch / Pointer drag controls
-    let isPointerDown = false;
-    function handlePointer(clientX) {
-      const rect = canvas.getBoundingClientRect();
-      const x = clientX - rect.left;
-      player.targetX = Math.max(player.size / 2, Math.min(canvas.width - player.size / 2, x));
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.01, now);
+        gain.gain.linearRampToValueAtTime(0.25, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch (e) {
+        console.error(e);
+      }
     }
-    canvas.addEventListener('pointerdown', (e) => {
-      isPointerDown = true;
-      handlePointer(e.clientX);
-    });
-    window.addEventListener('pointermove', (e) => {
-      if (isPointerDown) handlePointer(e.clientX);
-    });
-    window.addEventListener('pointerup', () => { isPointerDown = false; });
 
-    // Mobile onscreen buttons
-    const btnLeft = document.getElementById('btn-left');
-    const btnRight = document.getElementById('btn-right');
-    const setupHold = (el, key) => {
-      el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; }, { passive: false });
-      el.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
-      el.addEventListener('mousedown', () => { keys[key] = true; });
-      el.addEventListener('mouseup', () => { keys[key] = false; });
-      el.addEventListener('mouseleave', () => { keys[key] = false; });
-    };
-    setupHold(btnLeft, 'left');
-    setupHold(btnRight, 'right');
+    function playWrongSound() {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
-    function createSplash(x, y, color) {
-      for (let i = 0; i < 18; i++) {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, now);
+
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.005, now + 0.18);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.18);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function playClearSound() {
+      try {
+        ensureAudioContext();
+        const now = audioCtx.currentTime;
+        const chords = [523.25, 659.25, 783.99, 1046.5]; // ド・ミ・ソ・高ド
+        chords.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+          gain.gain.setValueAtTime(0.22, now + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + idx * 0.09 + 0.28);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.09);
+          osc.stop(now + idx * 0.09 + 0.28);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function spawnParticles(cx, cy, color) {
+      for (let i = 0; i < 16; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const spd = Math.random() * 5 + 2;
+        const speed = Math.random() * 4.0 + 1.5;
         particles.push({
-          x,
-          y,
-          vx: Math.cos(angle) * spd,
-          vy: Math.sin(angle) * spd,
-          radius: Math.random() * 4 + 3,
-          color,
-          alpha: 1,
-          decay: Math.random() * 0.04 + 0.02
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1.0,
+          color: color,
+          size: Math.random() * 4 + 3
         });
       }
     }
 
-    function spawnPoop() {
-      const roadMargin = 30;
-      const x = Math.random() * (canvas.width - roadMargin * 2) + roadMargin;
-      const baseSpd = (Math.random() * 2 + 4.2 + (distance / (totalDistanceUnits * 0.35))) * selectedSpeedMultiplier;
-      hazards.push({
-        x,
-        y: -30,
-        speed: baseSpd,
-        size: 32,
-        rot: Math.random() * 0.4 - 0.2
-      });
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
     }
 
-    function spawnPaper() {
-      const roadMargin = 40;
-      const x = Math.random() * (canvas.width - roadMargin * 2) + roadMargin;
-      papers.push({
-        x,
-        y: -25,
-        speed: 3.8 * selectedSpeedMultiplier,
-        size: 28
-      });
+    function initWordPools() {
+      wordPoolByLength[2] = shuffleArray(WORD_DATABASE[2]);
+      wordPoolByLength[3] = shuffleArray(WORD_DATABASE[3]);
+      wordPoolByLength[4] = shuffleArray(WORD_DATABASE[4]);
     }
 
-    function startGame() {
-      sound.init();
-      totalDistanceUnits = selectedDistanceMeters * 10;
-      player.speed = basePlayerSpeed * Math.min(1.3, Math.max(0.85, selectedSpeedMultiplier));
-      distance = 0;
-      paperCount = 0;
-      hazards = [];
-      papers = [];
-      particles = [];
-      spawnTimer = 0;
-      paperTimer = 0;
-      isRunning = true;
-      player.x = canvas.width / 2;
-      player.targetX = canvas.width / 2;
-      updateHUD();
-      screenStart.classList.add('hidden');
-      screenResult.classList.add('hidden');
+    function getStageConfig(stage) {
+      if (stage <= 2) return { length: 2, dummyCount: 1 };
+      if (stage <= 4) return { length: 3, dummyCount: 1 };
+      if (stage <= 6) return { length: 3, dummyCount: 2 };
+      if (stage <= 8) return { length: 4, dummyCount: 1 };
+      return { length: 4, dummyCount: 2 };
     }
 
-    function finishGame(success) {
-      isRunning = false;
-      const pct = Math.min(100, Math.floor((distance / totalDistanceUnits) * 100));
-      finalPaper.textContent = `${paperCount}個`;
-      finalProgress.textContent = `${pct}%`;
+    function getSlotsInfo() {
+      if (!targetChars.length) return [];
+      const count = targetChars.length;
+      const slotSize = Math.min(56, (canvas.width - 40 - (count - 1) * 12) / count);
+      const gap = 10;
+      const totalW = count * slotSize + (count - 1) * gap;
+      const startX = (canvas.width - totalW) / 2;
+      const y = 145;
 
-      if (success) {
-        sound.playClear();
-        resultIcon.textContent = '🚽✨';
-        resultTitle.textContent = 'ゴールイン！爽快！';
-        resultTitle.className = 'text-3xl sm:text-4xl font-black text-center mb-2 tracking-wide text-emerald-400';
-        resultDesc.innerHTML = `${selectedDistanceMeters}m の距離を駆け抜けた！<br>無事にトイレへ到達！スッキリ大成功です！🎉`;
+      const slots = [];
+      for (let i = 0; i < count; i++) {
+        const x = startX + i * (slotSize + gap);
+        slots.push({
+          x: x,
+          y: y,
+          size: slotSize,
+          cx: x + slotSize / 2,
+          cy: y + slotSize / 2
+        });
+      }
+      return slots;
+    }
+
+    function layoutTiles() {
+      const count = tiles.length;
+      const tileAreaY = 225;
+      const areaH = canvas.height - tileAreaY - 15;
+
+      if (count <= 3) {
+        // 1行で並べる
+        const size = 62;
+        const gap = 16;
+        const totalW = count * size + (count - 1) * gap;
+        const startX = (canvas.width - totalW) / 2;
+        const y = tileAreaY + (areaH - size) / 2;
+
+        tiles.forEach((t, i) => {
+          t.size = size;
+          t.x = startX + i * (size + gap);
+          t.y = y;
+          t.cx = t.x + size / 2;
+          t.cy = t.y + size / 2;
+        });
       } else {
-        sound.playHit();
-        resultIcon.textContent = '💩';
-        resultTitle.textContent = 'うんこ直撃...！';
-        resultTitle.className = 'text-3xl sm:text-4xl font-black text-center mb-2 tracking-wide text-amber-500';
-        const rem = Math.max(0, Math.ceil((totalDistanceUnits - distance) / 10));
-        resultDesc.innerHTML = `あと <strong>${rem}m</strong> のところで被弾してしまった...<br>もう一度挑戦しよう！`;
-      }
-      screenResult.classList.remove('hidden');
-    }
+        // 2行で並べる
+        const cols = count === 4 ? 2 : 3;
+        const rows = Math.ceil(count / cols);
+        const size = cols === 3 ? 58 : 64;
+        const gapX = 14;
+        const gapY = 14;
 
-    function updateHUD() {
-      const remainingMeters = Math.max(0, Math.ceil((totalDistanceUnits - distance) / 10));
-      hudRemain.textContent = `${remainingMeters}m`;
-      hudPaper.textContent = paperCount;
-      const pct = Math.min(100, (distance / totalDistanceUnits) * 100);
-      hudProgressBar.style.width = `${pct}%`;
-    }
+        for (let r = 0; r < rows; r++) {
+          const rowItems = (r === rows - 1 && count % cols !== 0) ? count % cols : cols;
+          const totalW = rowItems * size + (rowItems - 1) * gapX;
+          const startX = (canvas.width - totalW) / 2;
+          const y = tileAreaY + 8 + r * (size + gapY);
 
-    // 人の進む速度（道路のスクロール速度）に完全に同期したゴールY座標の算出
-    function getGoalToiletY() {
-      // 道路白線の移動速度: 5 * selectedSpeedMultiplier (px/frame)
-      // distanceの進行速度: 1.8 * selectedSpeedMultiplier (units/frame)
-      // 1 unit あたりの移動ピクセル数 = 5 / 1.8 ≈ 2.778px
-      const pxPerUnit = 5 / 1.8;
-      const remainingUnits = totalDistanceUnits - distance;
-      return player.y - (remainingUnits * pxPerUnit);
-    }
-
-    function update() {
-      if (!isRunning) return;
-
-      const roadScrollSpeed = 5 * selectedSpeedMultiplier;
-      distance += 1.8 * selectedSpeedMultiplier;
-      roadStripeOffset = (roadStripeOffset + roadScrollSpeed) % 40;
-      updateHUD();
-
-      // トイレがプレイヤーの位置までスクロールして降りてきたタイミングでゴール判定
-      const goalY = getGoalToiletY();
-      if (goalY >= player.y || distance >= totalDistanceUnits) {
-        distance = totalDistanceUnits;
-        finishGame(true);
-        return;
-      }
-
-      // Movement
-      if (keys.left) player.targetX -= player.speed;
-      if (keys.right) player.targetX += player.speed;
-      player.targetX = Math.max(player.size / 2, Math.min(canvas.width - player.size / 2, player.targetX));
-      player.x += (player.targetX - player.x) * 0.25;
-
-      // ゴールが近づいて画面内に見えている間はうんこの新規発生を止めて爽快なゴールインにする
-      const isNearGoal = goalY > -60;
-
-      // Spawning Poop
-      spawnTimer++;
-      const currentSpawnRate = Math.max(10, Math.floor((35 - (distance / (totalDistanceUnits * 0.05))) / selectedSpeedMultiplier));
-      if (spawnTimer >= currentSpawnRate) {
-        if (!isNearGoal) {
-          spawnPoop();
+          for (let c = 0; c < rowItems; c++) {
+            const idx = r * cols + c;
+            if (idx < count) {
+              const t = tiles[idx];
+              t.size = size;
+              t.x = startX + c * (size + gapX);
+              t.y = y;
+              t.cx = t.x + size / 2;
+              t.cy = t.y + size / 2;
+            }
+          }
         }
-        spawnTimer = 0;
+      }
+    }
+
+    function updateInstruction() {
+      const nextIdx = filledChars.length;
+      if (nextIdx < targetChars.length) {
+        msgText.textContent = `「${targetChars[nextIdx]}」を タッチしてね！ (${nextIdx + 1} / ${targetChars.length})`;
+      } else {
+        msgText.textContent = '🎉 できたー！すごい！';
+      }
+    }
+
+    function initStage(stage) {
+      currentStage = stage;
+      isClear = false;
+      filledChars = [];
+      particles = [];
+
+      stageBadge.textContent = `ステージ ${currentStage} / ${TOTAL_STAGES}`;
+      document.getElementById('clearModal').style.display = 'none';
+
+      const config = getStageConfig(stage);
+
+      if (!wordPoolByLength[config.length] || wordPoolByLength[config.length].length === 0) {
+        wordPoolByLength[config.length] = shuffleArray(WORD_DATABASE[config.length]);
       }
 
-      // Spawning Paper
-      paperTimer++;
-      const currentPaperRate = Math.max(45, Math.floor(85 / selectedSpeedMultiplier));
-      if (paperTimer >= currentPaperRate) {
-        spawnPaper();
-        paperTimer = 0;
+      currentWordObj = wordPoolByLength[config.length].pop();
+      targetWord = currentWordObj.word;
+      targetChars = targetWord.split('');
+
+      const selectedDummies = [];
+      const dummyPool = [...currentWordObj.dummies];
+      for (let i = 0; i < config.dummyCount; i++) {
+        if (dummyPool.length > 0) {
+          const randIdx = Math.floor(Math.random() * dummyPool.length);
+          selectedDummies.push(dummyPool.splice(randIdx, 1)[0]);
+        }
       }
 
-      // Check Hazard Collisions
-      for (let i = hazards.length - 1; i >= 0; i--) {
-        const h = hazards[i];
-        h.y += h.speed;
+      const allTileChars = shuffleArray([...targetChars, ...selectedDummies]);
 
-        const dist = Math.hypot(player.x - h.x, player.y - h.y);
-        if (dist < (player.size + h.size) / 2 - 8) {
-          createSplash(h.x, h.y, '#795548');
-          hazards.splice(i, 1);
-          finishGame(false);
+      tiles = allTileChars.map((char, index) => {
+        const color = tileColors[index % tileColors.length];
+        return {
+          char: char,
+          color: color,
+          used: false,
+          pressed: 0,
+          x: 0,
+          y: 0,
+          size: 60,
+          cx: 30,
+          cy: 30
+        };
+      });
+
+      layoutTiles();
+      updateInstruction();
+    }
+
+    function handleTileTap(tile) {
+      if (isClear || tile.used) return;
+
+      tile.pressed = 1.0;
+      ensureAudioContext();
+
+      const nextExpectedChar = targetChars[filledChars.length];
+
+      if (tile.char === nextExpectedChar) {
+        // 正解の文字をタッチ
+        playTone(440 + filledChars.length * 90, 0.22, 'triangle');
+
+        tile.used = true;
+        filledChars.push(tile.char);
+
+        // パーティクル発生
+        const slots = getSlotsInfo();
+        const curSlot = slots[filledChars.length - 1];
+        spawnParticles(curSlot.cx, curSlot.cy, tile.color.bg);
+
+        if (filledChars.length === targetChars.length) {
+          isClear = true;
+          updateInstruction();
+          playClearSound();
+          setTimeout(showClearModal, 700);
+        } else {
+          updateInstruction();
+        }
+      } else {
+        // お手つき（違う文字）
+        playWrongSound();
+        spawnParticles(tile.cx, tile.cy, '#e53e3e');
+        msgText.textContent = `あれれ？ つぎは「${nextExpectedChar}」だよ！`;
+      }
+    }
+
+    function retryCurrentWord() {
+      if (isClear) return;
+      filledChars = [];
+      tiles.forEach(t => t.used = false);
+      updateInstruction();
+    }
+
+    function showClearModal() {
+      const curConfig = getStageConfig(currentStage);
+      const nextConfig = getStageConfig(currentStage + 1);
+      const modal = document.getElementById('clearModal');
+      const title = document.getElementById('clearTitle');
+      const desc = document.getElementById('clearDesc');
+      const emoji = document.getElementById('clearEmoji');
+      const nextBtn = document.getElementById('nextBtn');
+
+      if (currentStage >= TOTAL_STAGES) {
+        emoji.textContent = '👑';
+        title.textContent = '全10問 かんせい！';
+        desc.innerHTML = `10この ことばを ぜんぶあてたね！<br><strong style="color:#e84393; font-size:1.15rem;">【ことばパズルマスター】</strong>の大天才！🎉`;
+        nextBtn.textContent = '最初からもういちど遊ぶ';
+      } else {
+        title.textContent = `ステージ ${currentStage} クリア！`;
+        nextBtn.textContent = 'つぎの ステージへ！';
+
+        const isLengthUp = nextConfig.length > curConfig.length;
+        const isDummyUp = nextConfig.dummyCount > curConfig.dummyCount;
+
+        if (isLengthUp) {
+          emoji.textContent = '⭐';
+          desc.innerHTML = `2回クリア たっせい！つぎからは<br><strong style="color:#e84393; font-size:1.15rem;">【${nextConfig.length}もじのことば】</strong>に パワーアップ！`;
+        } else if (isDummyUp) {
+          emoji.textContent = '🌟';
+          desc.innerHTML = `2回クリア たっせい！<br>えらぶ文字が ふえて難しくなるよ！`;
+        } else {
+          emoji.textContent = '🎉';
+          desc.innerHTML = `「${targetWord}」ばっちり完成！<br>あと1回クリアで レベルアップ！`;
+        }
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function nextStage() {
+      if (currentStage >= TOTAL_STAGES) {
+        restartFromBeginning();
+      } else {
+        initStage(currentStage + 1);
+      }
+    }
+
+    function restartFromBeginning() {
+      initWordPools();
+      initStage(1);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      animTime += 0.05;
+
+      // 1. お題カード描画（イラスト & やわらかな浮遊アニメーション）
+      if (currentWordObj) {
+        const floatY = Math.sin(animTime) * 3;
+        const cardX = canvas.width / 2 - 58;
+        const cardY = 16 + floatY;
+        const cardSize = 116;
+
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.06)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 4;
+        roundRect(ctx, cardX, cardY, cardSize, 100, 24);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.restore();
+
+        // イラスト枠線
+        roundRect(ctx, cardX, cardY, cardSize, 100, 24);
+        ctx.strokeStyle = '#fff0f3';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // 絵文字
+        ctx.font = '54px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(currentWordObj.emoji, canvas.width / 2, cardY + 50);
+      }
+
+      // 2. 文字スロット描画
+      const slots = getSlotsInfo();
+      slots.forEach((slot, i) => {
+        const isFilled = i < filledChars.length;
+        const isCurrent = i === filledChars.length && !isClear;
+
+        ctx.save();
+        roundRect(ctx, slot.x, slot.y, slot.size, slot.size, 16);
+
+        if (isFilled) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+          ctx.strokeStyle = '#ff7675';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          // 埋まった文字
+          ctx.fillStyle = '#2d3436';
+          ctx.font = `bold ${slot.size * 0.58}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(filledChars[i], slot.cx, slot.cy + 1);
+        } else {
+          ctx.fillStyle = isCurrent ? '#fff5f7' : '#f1f2f6';
+          ctx.fill();
+          ctx.strokeStyle = isCurrent ? '#ff7675' : '#dfe4ea';
+          ctx.lineWidth = isCurrent ? 2.5 : 1.5;
+          ctx.setLineDash(isCurrent ? [4, 4] : []);
+          ctx.stroke();
+
+          if (isCurrent) {
+            // 現在のフォーカス表示
+            ctx.fillStyle = '#ff7675';
+            ctx.beginPath();
+            ctx.arc(slot.cx, slot.cy, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.restore();
+      });
+
+      // 3. 選択肢タイル描画
+      tiles.forEach(tile => {
+        if (tile.used) {
+          // 使用済みタイルは薄く表示
+          ctx.save();
+          roundRect(ctx, tile.x, tile.y, tile.size, tile.size, 18);
+          ctx.fillStyle = 'rgba(230, 233, 238, 0.4)';
+          ctx.fill();
+          ctx.restore();
           return;
         }
 
-        if (h.y > canvas.height + 40) hazards.splice(i, 1);
-      }
+        const scale = tile.pressed > 0.01 ? 0.92 : 1.0;
+        ctx.save();
+        ctx.translate(tile.cx, tile.cy);
+        ctx.scale(scale, scale);
+        ctx.translate(-tile.cx, -tile.cy);
 
-      // Check Paper Collisions
-      for (let i = papers.length - 1; i >= 0; i--) {
-        const it = papers[i];
-        it.y += it.speed;
+        ctx.shadowColor = 'rgba(0,0,0,0.08)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 4;
 
-        const dist = Math.hypot(player.x - it.x, player.y - it.y);
-        if (dist < (player.size + it.size) / 2) {
-          paperCount++;
-          sound.playPaper();
-          createSplash(it.x, it.y, '#ffffff');
-          papers.splice(i, 1);
-          continue;
+        roundRect(ctx, tile.x, tile.y, tile.size, tile.size, 18);
+        ctx.fillStyle = tile.color.bg;
+        ctx.fill();
+
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // ハイライト光沢
+        ctx.save();
+        roundRect(ctx, tile.x + 3, tile.y + 3, tile.size - 6, tile.size * 0.42, 14);
+        ctx.clip();
+        const grad = ctx.createLinearGradient(tile.x, tile.y, tile.x, tile.y + tile.size * 0.42);
+        grad.addColorStop(0, 'rgba(255,255,255,0.45)');
+        grad.addColorStop(1, 'rgba(255,255,255,0.0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(tile.x, tile.y, tile.size, tile.size * 0.5);
+        ctx.restore();
+
+        // 文字
+        ctx.fillStyle = tile.color.text;
+        ctx.font = `bold ${tile.size * 0.56}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(tile.char, tile.cx, tile.cy + 1);
+
+        ctx.restore();
+
+        if (tile.pressed > 0) {
+          tile.pressed -= 0.1;
+          if (tile.pressed < 0) tile.pressed = 0;
         }
+      });
 
-        if (it.y > canvas.height + 40) papers.splice(i, 1);
-      }
-
-      // Update Particles
+      // 4. パーティクル描画
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.alpha -= p.decay;
-        if (p.alpha <= 0) particles.splice(i, 1);
-      }
-    }
-
-    function render() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Road background
-      const roadW = Math.min(canvas.width - 24, 380);
-      const roadX = (canvas.width - roadW) / 2;
-
-      // Grass sides
-      ctx.fillStyle = '#78c257';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Main Road
-      ctx.fillStyle = '#e8c392';
-      ctx.fillRect(roadX, 0, roadW, canvas.height);
-
-      // Road Border Lines
-      ctx.fillStyle = '#d49b6a';
-      ctx.fillRect(roadX - 4, 0, 4, canvas.height);
-      ctx.fillRect(roadX + roadW, 0, 4, canvas.height);
-
-      // White moving dashes
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 4;
-      ctx.setLineDash([20, 20]);
-      ctx.lineDashOffset = -roadStripeOffset;
-      ctx.beginPath();
-      ctx.moveTo(roadX + 24, 0);
-      ctx.lineTo(roadX + 24, canvas.height);
-      ctx.moveTo(roadX + roadW - 24, 0);
-      ctx.lineTo(roadX + roadW - 24, canvas.height);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // 人の進行速度（道路スクロール）に合わせて降りてくるゴール＆トイレマーク
-      const goalY = getGoalToiletY();
-      if (goalY > -150 && goalY < canvas.height + 100) {
-        ctx.save();
-        
-        // ゴールゲート・ライン（チェッカーフラッグ風）
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.fillRect(roadX, goalY - 6, roadW, 12);
-        const checkSize = 18;
-        for (let cx = roadX; cx < roadX + roadW; cx += checkSize * 2) {
-          ctx.fillStyle = '#ea580c';
-          ctx.fillRect(cx, goalY - 6, checkSize, 12);
+        p.life -= 0.035;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
         }
-
-        // トイレマーク
-        ctx.font = '54px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🚽', canvas.width / 2, goalY - 32);
-
-        // ゴール看板テキスト
-        ctx.font = '900 15px sans-serif';
-        ctx.fillStyle = '#1e293b';
-        ctx.fillText('🏁 TOILET GOAL 🏁', canvas.width / 2, goalY - 72);
-        ctx.restore();
-      }
-
-      // Draw Items (Toilet Paper)
-      ctx.font = '26px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      for (let it of papers) {
-        ctx.fillText('🧻', it.x, it.y);
-      }
-
-      // Draw Hazards (Poop)
-      ctx.font = '34px sans-serif';
-      for (let h of hazards) {
         ctx.save();
-        ctx.translate(h.x, h.y);
-        ctx.rotate(h.rot);
-        ctx.fillText('💩', 0, 0);
-        ctx.restore();
-      }
-
-      // Draw Player
-      if (isRunning) {
-        const bounce = Math.sin(Date.now() / 80) * 4;
-        ctx.font = '40px sans-serif';
-        ctx.fillText('🏃', player.x, player.y + bounce);
-      }
-
-      // Draw Particles
-      for (let p of particles) {
-        ctx.save();
-        ctx.globalAlpha = p.alpha;
+        ctx.globalAlpha = Math.max(0, p.life);
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
+
+      requestAnimationFrame(draw);
     }
 
-    function loop() {
-      update();
-      render();
-      requestAnimationFrame(loop);
+    function handleCanvasPointer(e) {
+      if (isClear) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      for (let i = 0; i < tiles.length; i++) {
+        const tile = tiles[i];
+        if (tile.used) continue;
+        if (x >= tile.x && x <= tile.x + tile.size &&
+            y >= tile.y && y <= tile.y + tile.size) {
+          handleTileTap(tile);
+          break;
+        }
+      }
     }
 
-    document.getElementById('btn-start').addEventListener('click', startGame);
-    document.getElementById('btn-retry').addEventListener('click', startGame);
-    document.getElementById('btn-change-settings').addEventListener('click', () => {
-      screenResult.classList.add('hidden');
-      screenStart.classList.remove('hidden');
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      handleCanvasPointer(e);
     });
 
-    window.onload = () => {
-      resizeCanvas();
-      loop();
-    };
+    window.addEventListener('load', () => {
+      initWordPools();
+      initStage(1);
+      draw();
+    });
   </script>
 </body>
 </html>
