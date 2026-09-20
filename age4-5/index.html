@@ -11,46 +11,47 @@
       box-sizing: border-box;
       user-select: none;
       -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
     body {
       background: #f2fbf6;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Maru Gothic ProN", sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 16px 30px;
+      padding: 18px 16px 36px;
     }
     header {
       width: 100%;
       max-width: 380px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
     .back-btn {
       display: inline-block;
       text-decoration: none;
       background: #fff;
       color: #666;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       padding: 6px 14px;
       border-radius: 20px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       font-weight: 500;
     }
     h1 {
-      font-size: 1.5rem;
+      font-size: 1.45rem;
       color: #00b894;
     }
     p.lead {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: #777;
       margin-top: 4px;
     }
     .game-list {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 13px;
       width: 100%;
       max-width: 380px;
     }
@@ -60,60 +61,70 @@
       background: #fff;
       text-decoration: none;
       padding: 14px 16px;
-      border-radius: 20px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      border-radius: 22px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
       border: 2px solid transparent;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      touch-action: manipulation;
     }
     .game-card:active {
       transform: scale(0.97);
     }
-    .card-maze   { border-color: #c3f7d8; box-shadow: 0 4px 12px rgba(132,250,176,0.3); }
-    .card-num    { border-color: #ffeaa7; box-shadow: 0 4px 12px rgba(253,203,110,0.3); }
-    .card-buster { border-color: #bae6fd; box-shadow: 0 4px 12px rgba(56,189,248,0.3); }
-    .card-dash   { border-color: #fed7aa; box-shadow: 0 4px 12px rgba(251,146,60,0.3); }
+    .card-maze     { border-color: #c3f7d8; box-shadow: 0 4px 12px rgba(132,250,176,0.3); }
+    .card-num      { border-color: #ffeaa7; box-shadow: 0 4px 12px rgba(253,203,110,0.3); }
+    .card-sound    { border-color: #e0d4fc; box-shadow: 0 4px 12px rgba(165,94,234,0.22); }
+    .card-word     { border-color: #ffd2d2; box-shadow: 0 4px 12px rgba(255,118,117,0.22); }
+    .card-compare  { border-color: #ffdeb7; box-shadow: 0 4px 12px rgba(255,159,67,0.25); }
 
     .game-icon {
-      font-size: 2.3rem;
+      font-size: 2.2rem;
       margin-right: 14px;
       width: 58px;
       height: 58px;
-      border-radius: 16px;
+      border-radius: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
-    .icon-maze   { background: #e8f8f0; }
-    .icon-num    { background: #fff9e6; }
-    .icon-buster { background: #e0f2fe; }
-    .icon-dash   { background: #ffedd5; }
+    .icon-maze     { background: #e8f8f0; }
+    .icon-num      { background: #fff9e6; }
+    .icon-sound    { background: #f3ebff; }
+    .icon-word     { background: #fff0f0; }
+    .icon-compare  { background: #fff4e8; }
 
     .game-info {
       flex: 1;
+      min-width: 0;
     }
     .game-info h2 {
-      font-size: 1.15rem;
+      font-size: 1.08rem;
       color: #2d3436;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 6px;
     }
     .game-info p {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: #636e72;
       margin-top: 3px;
       line-height: 1.35;
     }
     .badge {
-      font-size: 0.7rem;
-      padding: 2px 8px;
+      font-size: 0.68rem;
+      padding: 2px 7px;
       border-radius: 10px;
       font-weight: bold;
       color: #fff;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
-    .badge-pop { background: #ff7675; }
-    .badge-fun { background: #0984e3; }
+    .badge-maze    { background: #00b894; }
+    .badge-num     { background: #ff9f43; }
+    .badge-sound   { background: #a55eea; }
+    .badge-word    { background: #ff7675; }
+    .badge-compare { background: #ee5253; }
   </style>
 </head>
 <body>
@@ -130,7 +141,7 @@
     <a href="game2.html" class="game-card card-maze">
       <div class="game-icon icon-maze">🐱</div>
       <div class="game-info">
-        <h2>めいろアドベンチャー <span class="badge badge-fun">全10面</span></h2>
+        <h2>めいろアドベンチャー <span class="badge badge-maze">全10面</span></h2>
         <p>動物たちをゴールへみちびこう！最深部をめざせ！</p>
       </div>
     </a>
@@ -139,26 +150,35 @@
     <a href="game1.html" class="game-card card-num">
       <div class="game-icon icon-num">🔢</div>
       <div class="game-info">
-        <h2>すうじタッチ！</h2>
-        <p>1から 5まで じゅんばんに タッチして消そう！</p>
+        <h2>すうじタッチ！ <span class="badge badge-num">かず・じゅんばん</span></h2>
+        <p>1から順番にポンポンタッチ！数を楽しく覚えよう！</p>
       </div>
     </a>
 
-    <!-- 3. トイレット・バスターズ！ -->
-    <a href="game3.html" class="game-card card-buster">
-      <div class="game-icon icon-buster">🚽</div>
+    <!-- 3. おとあてピコピコ！ -->
+    <a href="game3.html" class="game-card card-sound">
+      <div class="game-icon icon-sound">🎵</div>
       <div class="game-info">
-        <h2>トイレット・バスターズ！ </h2>
-        <p>水鉄砲で落ちてくるうんこを撃ち落とせ！</p>
+        <h2>おとあてピコピコ！ <span class="badge badge-sound">きおく・リズム</span></h2>
+        <p>4つの音が光る順番をよく見て、同じ順にタッチ！</p>
       </div>
     </a>
 
-    <!-- 4. トイレット・ダッシュ！ -->
-    <a href="game4.html" class="game-card card-dash">
-      <div class="game-icon icon-dash">💩</div>
+    <!-- 4. ことばパズル（ひらがなタッチ） -->
+    <a href="game4.html" class="game-card card-word">
+      <div class="game-icon icon-word">🔤</div>
       <div class="game-info">
-        <h2>トイレット・ダッシュ！ </h2>
-        <p>うんこをよけてペーパーを集め、トイレへ猛ダッシュ！</p>
+        <h2>ことばパズル <span class="badge badge-word">全10問</span></h2>
+        <p>イラストを見て、バラバラの文字を正しい順にタッチ！</p>
+      </div>
+    </a>
+
+    <!-- 5. どっちがおおい？（かずくらべ） -->
+    <a href="game5.html" class="game-card card-compare">
+      <div class="game-icon icon-compare">🍎</div>
+      <div class="game-info">
+        <h2>どっちがおおい？ <span class="badge badge-compare">全10問</span></h2>
+        <p>左右のお皿を見て、フルーツが多い方をタッチしよう！</p>
       </div>
     </a>
 
